@@ -1,1 +1,1 @@
-ENDPOINT = "https://api.speck.chat"
+ENDPOINT = "http://0.0.0.0:8080"

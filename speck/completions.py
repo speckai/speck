@@ -3,15 +3,18 @@ import json
 import os
 
 import httpx
-import openai
 import requests
+from openai import OpenAI
 
 from .chat_format import Message
 from .config import ENDPOINT
 
+client = OpenAI(api_key="hi")
+
 
 def get_api_key():
     return os.environ["OPENAI_API_KEY"]
+
 
 # Todo: migrate this to its own chat folder
 class chat:
@@ -19,7 +22,7 @@ class chat:
     def create(
         model: str,
         messages: list[Message] | list[dict[str, str]],
-        session_key: str,
+        session_key: str = None,
         local_retry: bool = True,
         **kwargs,
     ):
@@ -29,13 +32,17 @@ class chat:
                 "messages": messages,
             }
             request: requests.Response = requests.post(
-                f"{ENDPOINT}/completions/create", json=body
+                f"{ENDPOINT}/chat/completions/create", json=body
             )
             request.raise_for_status()
             return request.json()
         except requests.exceptions.HTTPError as e:
             if local_retry and get_api_key() is not None:
-                return openai.
+                print("Failed to create completions, retrying with local API key")
+                return client.chat.completions.create(
+                    messages=messages,
+                    model=model,
+                )
             else:
                 raise e
         except requests.exceptions.ReadTimeout as errrt:
@@ -73,7 +80,7 @@ class chat:
 
         async with httpx.AsyncClient() as client:
             async with client.stream(
-                "POST", f"{ENDPOINT}/completions/stream", json=body, timeout=None
+                "POST", f"{ENDPOINT}/chat/completions/stream", json=body, timeout=None
             ) as response:
                 async for chunk in response.aiter_raw():
                     decoded_chunk: str = chunk.decode("utf-8")
