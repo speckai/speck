@@ -1,12 +1,17 @@
 import asyncio
 import json
+import os
 
 import httpx
+import openai
 import requests
 
 from .chat_format import Message
 from .config import ENDPOINT
 
+
+def get_api_key():
+    return os.environ["OPENAI_API_KEY"]
 
 # Todo: migrate this to its own chat folder
 class chat:
@@ -15,17 +20,30 @@ class chat:
         model: str,
         messages: list[Message] | list[dict[str, str]],
         session_key: str,
+        local_retry: bool = True,
         **kwargs,
     ):
-        body: dict[str, str] = {
-            "model": model,
-            "messages": messages,
-        }
-        request: requests.Response = requests.post(
-            f"{ENDPOINT}/completions/create", json=body
-        )
-        return request.json()
-        pass
+        try:
+            body: dict[str, str] = {
+                "model": model,
+                "messages": messages,
+            }
+            request: requests.Response = requests.post(
+                f"{ENDPOINT}/completions/create", json=body
+            )
+            request.raise_for_status()
+            return request.json()
+        except requests.exceptions.HTTPError as e:
+            if local_retry and get_api_key() is not None:
+                return openai.
+            else:
+                raise e
+        except requests.exceptions.ReadTimeout as errrt:
+            print("Time out")
+        except requests.exceptions.ConnectionError as conerr:
+            print("Connection error")
+        except requests.exceptions.RequestException as errex:
+            print("Exception request")
 
     @staticmethod
     async def create_async(
@@ -37,6 +55,8 @@ class chat:
         # Todo: post async
         pass
 
+    # Convert streaming to the following format:
+    # for text, chunk in chat.stream(model, messages, session_key):
     @staticmethod
     async def create_stream(
         model: str,
