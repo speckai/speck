@@ -65,37 +65,30 @@ class chat:
     # Convert streaming to the following format:
     # for text, chunk in chat.stream(model, messages, session_key):
     @staticmethod
-    async def create_stream(
+    def create_stream(
         model: str,
         messages: list[Message] | list[dict[str, str]],
-        session_key: str,
         process_chunk_lambda,
+        session_key: str = None,
     ):
         body: dict[str, str] = {
             "model": model,
             "messages": messages,
         }
 
-        full_content = []  # List to accumulate the content of each chunk
-
-        async with httpx.AsyncClient() as client:
-            async with client.stream(
+        with httpx.Client() as client:
+            with client.stream(
                 "POST", f"{ENDPOINT}/chat/completions/stream", json=body, timeout=None
             ) as response:
-                async for chunk in response.aiter_raw():
+                for chunk in response.iter_raw():
                     decoded_chunk: str = chunk.decode("utf-8")
                     chunk_data: dict[str, str] = json.loads(decoded_chunk)
                     chunk_type: str = chunk_data.get("type")
                     chunk_content: str = chunk_data.get("content")
 
                     # Process each chunk with the lambda function
-                    process_chunk_lambda(chunk_type, chunk_content)
-
-                    # Accumulate the content
-                    full_content.append(chunk_content)
+                    process_chunk_lambda(chunk_content, chunk_type == "full")
 
                     # Handle the end of the stream
                     if chunk_type == "full":
-                        break
-
-        return "".join(full_content)  # Return the complete message
+                        return chunk_content
