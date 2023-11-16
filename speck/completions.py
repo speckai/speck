@@ -23,7 +23,7 @@ class chat:
     def log(
         model: str,
         messages: list[Message] | list[dict[str, str]],
-        completion: str,
+        completion: dict[str, str],
         session_key: str = None,
         **kwargs,
     ):
