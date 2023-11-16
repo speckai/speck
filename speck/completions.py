@@ -8,6 +8,7 @@ from openai import OpenAI
 
 from .chat_format import Message
 from .config import ENDPOINT
+from .metadata import generate_metadata_dict
 
 client = OpenAI(api_key="hi")
 
@@ -18,6 +19,27 @@ def get_api_key():
 
 # Todo: migrate this to its own chat folder
 class chat:
+    @staticmethod
+    def log(
+        model: str,
+        messages: list[Message] | list[dict[str, str]],
+        completion: str,
+        session_key: str = None,
+        **kwargs,
+    ):
+        body: dict[str, str] = {
+            "model": model,
+            "messages": messages,
+            "completion": completion,
+            **kwargs,
+            **generate_metadata_dict(),
+        }
+        request: requests.Response = requests.post(
+            f"{ENDPOINT}/chat/completions/log", json=body
+        )
+        # request.raise_for_status()
+        return request.json()
+
     @staticmethod
     def create(
         model: str,
