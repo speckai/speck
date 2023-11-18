@@ -1,4 +1,3 @@
-import asyncio
 import json
 import os
 
@@ -6,9 +5,10 @@ import httpx
 import requests
 from openai import OpenAI
 
+from speck.metadata import generate_metadata_dict
+
 from .chat_format import Message
 from .config import ENDPOINT
-from .metadata import generate_metadata_dict
 
 client = OpenAI(api_key="hi")
 
@@ -20,7 +20,7 @@ def get_api_key():
 # Todo: migrate this to its own chat folder
 class chat:
     @staticmethod
-    def log(
+    def llm_log(
         model: str,
         messages: list[Message] | list[dict[str, str]],
         completion: dict[str, str],
@@ -28,14 +28,16 @@ class chat:
         **kwargs,
     ):
         body: dict[str, str] = {
-            "model": model,
-            "messages": messages,
-            "completion": completion,
-            **kwargs,
-            **generate_metadata_dict(),
+            "input": {
+                "model": model,
+                "messages": messages,
+                **kwargs,
+            },
+            "output": completion,
+            "metadata": generate_metadata_dict(),
         }
         request: requests.Response = requests.post(
-            f"{ENDPOINT}/chat/completions/log", json=body
+            f"{ENDPOINT}/chat/completions/llm-log", json=body
         )
         # request.raise_for_status()
         return request.json()

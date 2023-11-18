@@ -1,6 +1,7 @@
 from openai import ChatCompletion, OpenAI
 
-from speck import chat
+from speck.llm import chat
+from speck.logs import logger
 
 params = {
     "model": "gpt-4",
@@ -9,17 +10,13 @@ params = {
         {"role": "user", "content": "Failed to work"},
         {"role": "assistant", "content": "What is the problem?"},
         {"role": "user", "content": "It doesn't work"},
-        {"role": "assistant", "content": "What doesn't work?"},
-        {"role": "user", "content": "Everything"},
-        {"role": "assistant", "content": "What do you mean by everything?"},
-        {"role": "user", "content": "I mean everything"},
-        {"role": "assistant", "content": "I don't understand"},
-        {"role": "user", "content": "I don't understand either"},
     ],
+    "temperature": 0.7,
 }
 
 client = OpenAI(api_key="")
 response: ChatCompletion = client.chat.completions.create(**params)
 
 print(response.model_dump())
-chat.log(completion=response.model_dump(), **params)
+chat.llm_log(completion=response.model_dump(), **params)
+logger.app_log(message="hi")

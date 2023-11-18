@@ -1,4 +1,4 @@
-from speck import chat
+from speck.llm import chat
 
 print(
     "Nice:",
