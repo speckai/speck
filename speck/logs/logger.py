@@ -1,6 +1,6 @@
 import requests
 
-from speck.metadata import generate_metadata_dict
+from speck.logs.metadata import generate_metadata_dict
 from speck.models.config import ENDPOINT
 
 

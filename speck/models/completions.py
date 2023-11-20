@@ -1,11 +1,12 @@
 import json
+import logging
 import os
 
 import httpx
 import requests
 from openai import OpenAI
 
-from speck.metadata import generate_metadata_dict
+from speck.logs.metadata import generate_metadata_dict
 
 from .chat_format import Message
 from .config import ENDPOINT
@@ -62,7 +63,9 @@ class chat:
             return request.json()
         except requests.exceptions.HTTPError as e:
             if local_retry and get_api_key() is not None:
-                print("Failed to create completions, retrying with local API key")
+                logging.warning(
+                    "Failed to create completions, retrying with local API key"
+                )
                 return client.chat.completions.create(
                     messages=messages,
                     model=model,
@@ -70,11 +73,11 @@ class chat:
             else:
                 raise e
         except requests.exceptions.ReadTimeout as errrt:
-            print("Time out")
+            logging.warning("Time out")
         except requests.exceptions.ConnectionError as conerr:
-            print("Connection error")
+            logging.warning("Connection error")
         except requests.exceptions.RequestException as errex:
-            print("Exception request")
+            logging.warning("Exception request")
 
     @staticmethod
     async def create_async(
