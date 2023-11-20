@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import find_packages, setup
 
 
 def readme():
@@ -7,9 +7,15 @@ def readme():
     return README
 
 
+def parse_requirements(filename):
+    with open(filename, "r") as f:
+        requirements = f.read().splitlines()
+    return requirements
+
+
 setup(
     name="python-speck",
-    packages=["speck"],
+    packages=find_packages(exclude=["tests", "tests.*"]),
     version="0.0.0",
     description="Speck - Unified observability platform for production LLM apps",
     long_description=readme(),
@@ -23,5 +29,5 @@ setup(
         "Programming Language :: Python :: 3.12",
     ],
     include_package_data=True,
-    install_requires=[],
+    install_requires=parse_requirements("requirements.txt"),
 )
