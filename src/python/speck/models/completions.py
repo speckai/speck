@@ -5,7 +5,6 @@ import os
 import httpx
 import requests
 from openai import OpenAI
-
 from speck.logs.metadata import generate_metadata_dict
 
 from .chat_format import Message

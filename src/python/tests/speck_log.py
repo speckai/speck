@@ -1,7 +1,5 @@
 from openai import ChatCompletion, OpenAI
-
-from speck.logs import logger
-from speck.models import chat
+from speck import chat, logger
 
 params = {
     "model": "gpt-4",

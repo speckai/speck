@@ -2,7 +2,7 @@ from setuptools import find_packages, setup
 
 
 def readme():
-    with open("README.md") as f:
+    with open("../../README.md") as f:
         README = f.read()
     return README
 

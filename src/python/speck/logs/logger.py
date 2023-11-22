@@ -1,7 +1,7 @@
 import requests
 
-from speck.logs.metadata import generate_metadata_dict
-from speck.models.config import ENDPOINT
+from ..models.config import ENDPOINT
+from .metadata import generate_metadata_dict
 
 
 def app_log(message: str):
