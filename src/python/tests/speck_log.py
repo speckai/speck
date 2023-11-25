@@ -19,5 +19,5 @@ params = {
 client = OpenAI(api_key="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")
 response: ChatCompletion = client.chat.completions.create(**params)
 # logger.openai.log(response, **params)
-logger.app.log("Testing 12")
+# logger.app.log("Testing 12")
 # logger.openai.log_verbose(completion=response.model_dump(), **params)
