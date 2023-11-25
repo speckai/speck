@@ -5,13 +5,12 @@ import os
 import httpx
 import requests
 from openai import OpenAI
-from speck.logs.metadata import generate_metadata_dict
 
 from .chat_format import Message
 from .config import ENDPOINT
+from ..logs import logger
 
 client = OpenAI(api_key="hi")
-
 
 def get_api_key():
     return os.environ["OPENAI_API_KEY"]
@@ -19,28 +18,6 @@ def get_api_key():
 
 # Todo: migrate this to its own chat folder
 class chat:
-    @staticmethod
-    def llm_log(
-        model: str,
-        messages: list[Message] | list[dict[str, str]],
-        completion: dict[str, str],
-        session_key: str = None,
-        **kwargs,
-    ):
-        body: dict[str, str] = {
-            "input": {
-                "model": model,
-                "messages": messages,
-                **kwargs,
-            },
-            "output": completion,
-            "metadata": generate_metadata_dict(),
-        }
-        request: requests.Response = requests.post(
-            f"{ENDPOINT}/chat/completions/llm-log", json=body
-        )
-        # request.raise_for_status()
-        return request.json()
 
     @staticmethod
     def create(
@@ -56,7 +33,7 @@ class chat:
                 "messages": messages,
             }
             request: requests.Response = requests.post(
-                f"{ENDPOINT}/chat/completions/create", json=body
+                f"{ENDPOINT}/completions/openai/create", json=body
             )
             request.raise_for_status()
             return request.json()
@@ -85,7 +62,7 @@ class chat:
         session_key: str,
         **kwargs,
     ):
-        # Todo: post async
+        # TODO: post async
         pass
 
     # Convert streaming to the following format:
@@ -94,8 +71,9 @@ class chat:
     def create_stream(
         model: str,
         messages: list[Message] | list[dict[str, str]],
-        process_chunk_lambda,
+        process_chunk_lambda = None,
         session_key: str = None,
+        log: bool = False,
     ):
         body: dict[str, str] = {
             "model": model,
@@ -104,7 +82,7 @@ class chat:
 
         with httpx.Client() as client:
             with client.stream(
-                "POST", f"{ENDPOINT}/chat/completions/stream", json=body, timeout=None
+                "POST", f"{ENDPOINT}/completions/openai/stream", json=body, timeout=None
             ) as response:
                 for chunk in response.iter_raw():
                     decoded_chunk: str = chunk.decode("utf-8")

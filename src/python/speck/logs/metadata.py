@@ -3,11 +3,10 @@ import threading
 from datetime import datetime
 
 
-def generate_metadata_dict():
-    # Generate metadata for logs (based on thread, process, etc)
-    metadata = {
+def generate_metadata_dict() -> dict[str, str]:
+    metadata: dict[str, str] = {
         "thread": threading.get_ident(),
         "process": os.getpid(),
-        "timestamp": datetime.now().isoformat(),
+        "timestamp": datetime.utcnow().isoformat(),
     }
     return metadata

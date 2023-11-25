@@ -1,20 +1,23 @@
 from openai import ChatCompletion, OpenAI
+
+# Import 2 levels up for speck
+import os
+import sys
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from speck import chat, logger
 
 params = {
     "model": "gpt-4",
     "messages": [
-        {"role": "system", "content": "hi"},
-        {"role": "user", "content": "Failed to work"},
-        {"role": "assistant", "content": "What is the problem?"},
-        {"role": "user", "content": "It doesn't work"},
+        {"role": "system", "content": "You are an assistant."},
+        {"role": "user", "content": "What is my name?"},
     ],
-    "temperature": 0.7,
+    "temperature": 1,
 }
 
-client = OpenAI(api_key="")
+client = OpenAI(api_key="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")
 response: ChatCompletion = client.chat.completions.create(**params)
-
-print(response.model_dump())
-chat.llm_log(completion=response.model_dump(), **params)
-logger.app_log(message="hi")
+# logger.openai.log(response, **params)
+logger.app.log("Testing 12")
+# logger.openai.log_verbose(completion=response.model_dump(), **params)

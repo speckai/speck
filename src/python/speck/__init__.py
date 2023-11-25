@@ -1,2 +1,2 @@
-from .logs import logger, metadata
+from .logs import logger
 from .models.completions import chat
