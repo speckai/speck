@@ -4,7 +4,7 @@ from pydantic import BaseConfig, BaseModel
 
 from ..chat.entities import Messages
 from ..connections.custom import CustomProviderConnector
-from ..connections.entities import IConnector
+from ..connections.entities import IConnector, Models
 from ..connections.openai import OpenAIConnector
 
 
@@ -13,17 +13,10 @@ class Providers(Enum):
     CustomProvider = "CustomProvider"
 
 
-class Models(Enum):
-    GPT4 = "gpt-4"
-    GPT35 = "gpt-3.5"
-    GPT35_TURBO = "gpt-3.5-turbo"
-
-
 class Client(BaseModel):
     provider: Providers
-    model: Models
-    connector: IConnector = None
     provider_config: dict = None
+    connector: IConnector = None
 
     class Config(BaseConfig):
         arbitrary_types_allowed = True
@@ -31,11 +24,13 @@ class Client(BaseModel):
     def __init__(self, provider_config: dict = None, **data):
         super().__init__(**data)
         self.provider_config = provider_config or {}
-        self.connector = self._get_connector()
+        self.connector = self._get_connector(**data)
 
-    def _get_connector(self) -> IConnector:
+    def _get_connector(self, **data) -> IConnector:
         if self.provider == Providers.OpenAI:
-            return OpenAIConnector(api_key=self.provider_config.get("api_key", ""))
+            return OpenAIConnector(
+                api_key=self.provider_config.get("api_key", data.get("api_key", ""))
+            )
         elif self.provider == Providers.CustomProvider:
             return CustomProviderConnector(
                 message_prefix=self.provider_config.get("message_prefix", ""),
@@ -49,10 +44,10 @@ class Client(BaseModel):
         provider = next((p for p in Providers if p.value[0] == provider_str), None)
         if provider is None:
             raise ValueError("Invalid provider")
-        return cls(provider=provider, model=Models(model_str))
+        return cls(provider=provider)
 
-    def process_message(self, message: Messages) -> str:
-        return self.connector.process_message(message)
+    def process_message(self, messages: Messages, model: Models) -> str:
+        return self.connector.process_message(messages=messages, model=model)
 
     def __str__(self):
-        return f"Client({self.provider.value}:{self.model.value})"
+        return f"Client({self.provider.value})"
