@@ -16,13 +16,15 @@ custom_client = Client(
 print(openai_client)
 print(custom_client)
 
-client = Client(provider=Providers.OpenAI)
+# client = Client.from_openai(api_key="")
+client = Client.from_replicate()
+
 print(client)
 response = client.process_message(
     Messages(
         messages=[
-            Message(role="system", content="You exist."),
-            Message(role="user", content="Hello, world!"),
+            Message(role="system", content="You respond with 1 word answers."),
+            Message(role="user", content="Respond with YES"),
         ],
     ),
     model=Models.GPT35_TURBO,
