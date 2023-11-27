@@ -4,6 +4,8 @@ from typing import Literal
 # from dataclasses import dataclass
 from pydantic import BaseModel
 
+from ..connections.entities import IConnector
+
 MessageRole = Literal["system", "user", "assistant"]
 
 

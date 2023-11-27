@@ -1,7 +1,7 @@
 import replicate
 
 from ..chat.entities import IChatClient, IChatConfig, Messages
-from .entities import IConnector
+from .entities import IConnector, Providers
 
 
 class ReplicateConfig(IChatConfig):
@@ -16,10 +16,13 @@ class ReplicateConnector(IConnector, IChatClient):
 
     def __init__(
         self,
+        api_key: str | None = None,
         message_prefix: str = "<|im_start|>{role}\n",
         message_suffix: str = "<|im_end|>\n",
         messages_end: str = "<|im_start|>assistant\n",
     ):
+        super().__init__(provider=Providers.Replicate)
+        self.api_key = api_key
         self.message_prefix = message_prefix
         self.message_suffix = message_suffix
         self.messages_end = messages_end

@@ -1,30 +1,16 @@
 from enum import Enum
-from typing import Union
 
 from pydantic import BaseConfig, BaseModel
 
-from ..chat.entities import IChatClient, IChatConfig, Messages
+from ..chat.entities import IChatClient, Messages
 from ..connections.custom import CustomProviderConnector
+from ..connections.entities import IConnector, Providers
 from ..connections.openai import OpenAIConnector
 from ..connections.replicate import ReplicateConnector
 
 
-class Providers(Enum):
-    OpenAI = "OpenAI"
-    CustomProvider = "CustomProvider"
-    Replicate = "Replicate"
-
-
-class Client(BaseModel, IChatClient):
-    provider: Providers
-    provider_config: dict = None
-    connector: IChatClient = None
-
-    class Config(BaseConfig):
-        arbitrary_types_allowed = True
-
+class Client(IChatClient):
     def __init__(self, provider_config: dict = None, **data):
-        super().__init__(**data)
         self.provider_config = provider_config or {}
         self.connector = self._get_connector(**data)
 
@@ -52,17 +38,13 @@ class Client(BaseModel, IChatClient):
 
     @classmethod
     def from_openai(cls, api_key: str) -> OpenAIConnector:
-        return cls(provider=Providers.OpenAI, provider_config={"api_key": api_key})
+        # return cls(provider=Providers.OpenAI, provider_config={"api_key": api_key})
+        return OpenAIConnector(api_key=api_key)
 
     @classmethod
     def from_replicate(cls, api_key: str | None = None) -> ReplicateConnector:
         """Reads api_key from environment variable if not provided"""
-        return cls(
-            provider=Providers.Replicate,
-        )
+        return ReplicateConnector(api_key=api_key)
 
     def chat(self, messages: Messages, model: str, **config_kwargs) -> str:
         return self.connector.chat(messages=messages, model=model, **config_kwargs)
-
-    def __str__(self):
-        return f"Client({self.provider.value})"

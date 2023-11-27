@@ -1,9 +1,10 @@
 from ..chat.entities import IChatClient, IChatConfig, Messages
-from .entities import IConnector
+from .entities import IConnector, Providers
 
 
-class CustomProviderConnector(IConnector, IChatClient):
+class CustomProviderConnector(IChatClient):
     def __init__(self, message_prefix: str, message_suffix: str):
+        super().__init__(provider=Providers.CustomProvider)
         self.message_prefix = message_prefix
         self.message_suffix = message_suffix
 
