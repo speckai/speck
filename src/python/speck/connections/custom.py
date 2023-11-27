@@ -1,4 +1,4 @@
-from ..chat.entities import IChatClient, IChatConfig, Messages
+from ..chat.entities import IChatClient, IChatConfig, Messages, Response
 from .entities import IConnector, Providers
 
 
@@ -8,5 +8,5 @@ class CustomProviderConnector(IChatClient):
         self.message_prefix = message_prefix
         self.message_suffix = message_suffix
 
-    def chat(self, messages: Messages, model: str, **config_kwargs) -> str:
-        return f"{self.message_prefix} {messages} {self.message_suffix}"
+    def chat(self, messages: Messages, model: str, **config_kwargs) -> Response:
+        return Response(f"{self.message_prefix} {messages} {self.message_suffix}")

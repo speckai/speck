@@ -1,6 +1,6 @@
 import replicate
 
-from ..chat.entities import IChatClient, IChatConfig, Messages
+from ..chat.entities import IChatClient, IChatConfig, Messages, Response
 from .entities import IConnector, Providers
 
 
@@ -33,7 +33,7 @@ class ReplicateConnector(IConnector, IChatClient):
         model: str,
         config: ReplicateConfig = ReplicateConfig(),
         **config_kwargs
-    ) -> str:
+    ) -> Response:
         input = (
             "".join(
                 self.message_prefix.format(role=msg.role)
@@ -48,4 +48,4 @@ class ReplicateConnector(IConnector, IChatClient):
             "01-ai/yi-34b-chat:914692bbe8a8e2b91a4e44203e70d170c9c5ccc1359b283c84b0ec8d47819a46",
             input={"prompt": input},
         )
-        return "".join(item for item in output)
+        return Response(content="".join(item for item in output))

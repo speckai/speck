@@ -1,11 +1,24 @@
 from typing import Literal
 
 from openai import OpenAI
+from openai.types.chat import ChatCompletion
 
-from ..chat.entities import IChatClient, IChatConfig, Messages
+from ..chat.entities import IChatClient, IChatConfig, Messages, Response
 from .entities import IConnector, Providers
 
 OpenAIModel = Literal["gpt-4", "gpt-3.5", "gpt-3.5-turbo"]
+
+
+class OpenAIResponse(Response):
+    def __init__(self, chat_completion: ChatCompletion):
+        print(chat_completion)
+        content = chat_completion.choices[0].message.content
+        super().__init__(
+            content=content,
+            prompt_tokens=chat_completion.usage.prompt_tokens,
+            completion_tokens=chat_completion.usage.completion_tokens,
+            raw=chat_completion.model_dump(),
+        )
 
 
 class OpenAIChatConfig(IChatConfig):
@@ -30,10 +43,10 @@ class OpenAIConnector(IConnector, IChatClient):
         model: OpenAIModel,
         temperature: float = 1.0,
         **config_kwargs
-    ) -> str:
+    ) -> OpenAIResponse:
         print(temperature)
         input = self._convert_messages_to_prompt(messages)
         output = self.client.chat.completions.create(
             messages=input, model=model, temperature=temperature, **config_kwargs
         )
-        return output
+        return OpenAIResponse(output)

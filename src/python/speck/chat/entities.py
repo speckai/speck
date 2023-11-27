@@ -4,8 +4,6 @@ from typing import Literal
 # from dataclasses import dataclass
 from pydantic import BaseModel
 
-from ..connections.entities import IConnector
-
 MessageRole = Literal["system", "user", "assistant"]
 
 
@@ -23,6 +21,33 @@ class Messages(BaseModel):
         )
 
 
+class Response(BaseModel):
+    content: str
+    prompt_tokens: int | None = None
+    completion_tokens: int | None = None
+    raw: dict | None = None
+
+    def __init__(
+        self,
+        content: str,
+        prompt_tokens: int | None = None,
+        completion_tokens: int | None = None,
+        raw: dict | None = None,
+        **kwargs,
+    ):
+        super().__init__(
+            content=content,
+            prompt_tokens=prompt_tokens,
+            completion_tokens=completion_tokens,
+            raw=raw,
+        )
+        for key, value in kwargs.items():
+            setattr(self, key, value)
+
+    def __str__(self):
+        return f"Response({self.content}, raw={self.raw})"
+
+
 class IChatConfig:
     def __init__(self, **kwargs):
         self.kwargs = kwargs
@@ -38,5 +63,5 @@ class IChatClient(ABC):
         model: str,
         config: IChatConfig = IChatConfig(),
         **config_kwargs,
-    ) -> str:
+    ) -> Response:
         pass
