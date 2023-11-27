@@ -1,10 +1,15 @@
 import replicate
 
-from ..chat.entities import Messages
-from .entities import IConnector, Models
+from ..chat.entities import IChatClient, IChatConfig, Messages
+from .entities import IConnector
 
 
-class ReplicateConnector(IConnector):
+class ReplicateConfig(IChatConfig):
+    temperature: float
+    test: bool
+
+
+class ReplicateConnector(IConnector, IChatClient):
     """
     https://replicate.com/
     """
@@ -19,7 +24,13 @@ class ReplicateConnector(IConnector):
         self.message_suffix = message_suffix
         self.messages_end = messages_end
 
-    def process_message(self, messages: Messages, model: Models) -> str:
+    def chat(
+        self,
+        messages: Messages,
+        model: str,
+        config: ReplicateConfig = ReplicateConfig(),
+        **config_kwargs
+    ) -> str:
         input = (
             "".join(
                 self.message_prefix.format(role=msg.role)
@@ -29,6 +40,7 @@ class ReplicateConnector(IConnector):
             )
             + self.messages_end
         )
+        print(input)
         output = replicate.run(
             "01-ai/yi-34b-chat:914692bbe8a8e2b91a4e44203e70d170c9c5ccc1359b283c84b0ec8d47819a46",
             input={"prompt": input},
