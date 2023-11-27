@@ -3,7 +3,7 @@ from typing import Literal
 from openai import OpenAI
 from openai.types.chat import ChatCompletion
 
-from ..chat.entities import IChatClient, IChatConfig, Prompt, Response
+from ..chat.entities import IChatClient, IChatConfig, Prompt, Response, Stream
 from .connector import IConnector
 from .providers import Providers
 
@@ -23,6 +23,10 @@ class OpenAIResponse(Response):
 
 
 class OpenAIChatConfig(IChatConfig):
+    """
+    NOT USED ANYMORE. REPLACED BY **kwargs
+    """
+
     def __init__(self, temperature: float = 1.0, **kwargs):
         super().__init__(**kwargs)
         self.temperature = temperature
@@ -42,21 +46,36 @@ class OpenAIConnector(IConnector, IChatClient):
         self,
         prompt: Prompt,
         model: OpenAIModel,
+        stream: bool = False,
         temperature: float = 1.0,
         **config_kwargs
-    ) -> OpenAIResponse:
-        print(temperature)
+    ) -> OpenAIResponse | Stream:
         input = self._convert_messages_to_prompt(prompt)
-        output = self.client.chat.completions.create(
-            messages=input, model=model, temperature=temperature, **config_kwargs
-        )
 
-        self.log(
-            prompt=prompt,
-            model=model,
-            response=OpenAIResponse(output),
-            temperature=temperature,
-            **config_kwargs,
-        )
+        if stream:
+            output_stream = self.client.chat.completions.create(
+                messages=input,
+                model=model,
+                temperature=temperature,
+                stream=True,
+                **config_kwargs,
+            )
+
+            return Stream(
+                iterator=output_stream,
+                kwargs=self._get_log_kwargs(prompt, model, None, **config_kwargs),
+            )
+        else:
+            output = self.client.chat.completions.create(
+                messages=input, model=model, temperature=temperature, **config_kwargs
+            )
+
+            self.log(
+                prompt=prompt,
+                model=model,
+                response=OpenAIResponse(output),
+                temperature=temperature,
+                **config_kwargs,
+            )
 
         return OpenAIResponse(output)

@@ -2,25 +2,25 @@ from typing import Any
 
 import requests
 
-from ..chat.entities import Prompt, Response
-from ..connections.providers import Providers
 from ..models import ENDPOINT
 from .app import app
 from .metadata import generate_metadata_dict
 from .openai import openai
 
 
+# Todo: Fix typing for this function (circular import)
 def universal_format_log(
-    provider: Providers | str,
-    prompt: Prompt,
+    provider: "Providers",
+    prompt: "Prompt",
     model: str,
-    response: Response,
+    response: "Response",
     session_key: str = None,
     **kwargs,
 ) -> dict[str, str]:
     body: dict[str, Any] = {
         "input": {
-            "provider": provider.value if type(provider) == Providers else provider,
+            # Todo: Fix typing for Providers enum (circular import)
+            "provider": provider.value if hasattr(provider, "value") else provider,
             "model": model,
             "messages": prompt.model_dump()["messages"],
             **kwargs,
