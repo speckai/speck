@@ -12,8 +12,17 @@ class Message(BaseModel):
     content: str
 
 
-class Messages(BaseModel):
+class Prompt(BaseModel):
     messages: list[Message]
+
+    @classmethod
+    def from_openai(cls, messages: list[dict[str, str]]):
+        return cls(
+            messages=[
+                Message(role=message["role"], content=message["content"])
+                for message in messages
+            ]
+        )
 
     def __str__(self):
         return "\n".join(
@@ -59,7 +68,7 @@ class IChatClient(ABC):
     @abstractmethod
     def chat(
         self,
-        messages: Messages,
+        prompt: Prompt,
         model: str,
         config: IChatConfig = IChatConfig(),
         **config_kwargs,

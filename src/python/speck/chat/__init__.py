@@ -1,2 +1,2 @@
-from .client import Client
-from .entities import Message, Messages
+from .client import ChatClient
+from .entities import Message, Prompt

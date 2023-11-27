@@ -3,8 +3,9 @@ from typing import Literal
 from openai import OpenAI
 from openai.types.chat import ChatCompletion
 
-from ..chat.entities import IChatClient, IChatConfig, Messages, Response
-from .entities import IConnector, Providers
+from ..chat.entities import IChatClient, IChatConfig, Prompt, Response
+from .connector import IConnector
+from .providers import Providers
 
 OpenAIModel = Literal["gpt-4", "gpt-3.5", "gpt-3.5-turbo"]
 
@@ -34,19 +35,28 @@ class OpenAIConnector(IConnector, IChatClient):
         self.client = OpenAI(api_key=self.api_key)
         print(api_key)
 
-    def _convert_messages_to_prompt(self, messages: Messages) -> list[dict[str, str]]:
+    def _convert_messages_to_prompt(self, messages: Prompt) -> list[dict[str, str]]:
         return [{"role": msg.role, "content": msg.content} for msg in messages.messages]
 
     def chat(
         self,
-        messages: Messages,
+        prompt: Prompt,
         model: OpenAIModel,
         temperature: float = 1.0,
         **config_kwargs
     ) -> OpenAIResponse:
         print(temperature)
-        input = self._convert_messages_to_prompt(messages)
+        input = self._convert_messages_to_prompt(prompt)
         output = self.client.chat.completions.create(
             messages=input, model=model, temperature=temperature, **config_kwargs
         )
+
+        self.log(
+            prompt=prompt,
+            model=model,
+            response=OpenAIResponse(output),
+            temperature=temperature,
+            **config_kwargs,
+        )
+
         return OpenAIResponse(output)

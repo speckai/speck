@@ -1,7 +1,8 @@
 import replicate
 
-from ..chat.entities import IChatClient, IChatConfig, Messages, Response
-from .entities import IConnector, Providers
+from ..chat.entities import IChatClient, IChatConfig, Prompt, Response
+from .connector import IConnector
+from .providers import Providers
 
 
 class ReplicateConfig(IChatConfig):
@@ -29,7 +30,7 @@ class ReplicateConnector(IConnector, IChatClient):
 
     def chat(
         self,
-        messages: Messages,
+        prompt: Prompt,
         model: str,
         config: ReplicateConfig = ReplicateConfig(),
         **config_kwargs
@@ -39,7 +40,7 @@ class ReplicateConnector(IConnector, IChatClient):
                 self.message_prefix.format(role=msg.role)
                 + msg.content
                 + self.message_suffix.format(role=msg.role)
-                for msg in messages.messages
+                for msg in prompt.messages
             )
             + self.messages_end
         )
@@ -48,4 +49,14 @@ class ReplicateConnector(IConnector, IChatClient):
             "01-ai/yi-34b-chat:914692bbe8a8e2b91a4e44203e70d170c9c5ccc1359b283c84b0ec8d47819a46",
             input={"prompt": input},
         )
-        return Response(content="".join(item for item in output))
+
+        content = "".join(item for item in output)
+
+        self.log(
+            prompt=prompt,
+            model=model,
+            response=Response(content=content),
+            **config_kwargs,
+        )
+
+        return Response(content=content)

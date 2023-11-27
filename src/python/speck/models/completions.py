@@ -6,11 +6,12 @@ import httpx
 import requests
 from openai import OpenAI
 
+from ..logs import logger
 from .chat_format import Message
 from .config import ENDPOINT
-from ..logs import logger
 
 client = OpenAI(api_key="hi")
+
 
 def get_api_key():
     return os.environ["OPENAI_API_KEY"]
@@ -18,7 +19,6 @@ def get_api_key():
 
 # Todo: migrate this to its own chat folder
 class chat:
-
     @staticmethod
     def create(
         model: str,
@@ -71,7 +71,7 @@ class chat:
     def create_stream(
         model: str,
         messages: list[Message] | list[dict[str, str]],
-        process_chunk_lambda = None,
+        process_chunk_lambda=None,
         session_key: str = None,
         log: bool = False,
     ):

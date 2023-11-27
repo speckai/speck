@@ -1,4 +1,4 @@
-from speck import Client, Message, Messages
+from speck import ChatClient, Message, Prompt
 from speck.chat.client import Providers
 from speck.connections.replicate import ReplicateConfig
 
@@ -14,14 +14,16 @@ from speck.connections.replicate import ReplicateConfig
 # print(custom_client)
 
 clients = [
-    Client.from_openai(api_key="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"),
-    Client.from_replicate(),
+    ChatClient.from_openai(
+        api_key="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"
+    ),
+    ChatClient.from_replicate(),
 ]
 
 for client in clients:
     print(client)
     response = client.chat(
-        Messages(
+        Prompt(
             messages=[
                 Message(role="system", content="You respond with 1 word answers."),
                 Message(
