@@ -1,13 +1,8 @@
 import replicate
 
-from ..chat.entities import IChatClient, IChatConfig, Prompt, Response
+from ..chat.entities import IChatClient, IChatConfig, Prompt, Response, Stream
 from .connector import IConnector
 from .providers import Providers
-
-
-class ReplicateConfig(IChatConfig):
-    temperature: float
-    test: bool
 
 
 class ReplicateConnector(IConnector, IChatClient):
@@ -32,9 +27,13 @@ class ReplicateConnector(IConnector, IChatClient):
         self,
         prompt: Prompt,
         model: str,
-        config: ReplicateConfig = ReplicateConfig(),
+        stream: bool = False,
+        temperature: float = 1.0,
+        test: bool = False,
         **config_kwargs
-    ) -> Response:
+    ) -> Response | Stream:
+        all_kwargs = {**config_kwargs, "temperature": temperature, "test": test}
+
         input = (
             "".join(
                 self.message_prefix.format(role=msg.role)
@@ -50,13 +49,19 @@ class ReplicateConnector(IConnector, IChatClient):
             input={"prompt": input},
         )
 
-        content = "".join(item for item in output)
+        if stream:
+            return Stream(
+                iterator=output,
+                kwargs=self._get_log_kwargs(prompt, model, None, **all_kwargs),
+            )
+        else:
+            content = "".join(item for item in output)
 
-        self.log(
-            prompt=prompt,
-            model=model,
-            response=Response(content=content),
-            **config_kwargs,
-        )
+            self.log(
+                prompt=prompt,
+                model=model,
+                response=Response(content=content),
+                **all_kwargs,
+            )
 
-        return Response(content=content)
+            return Response(content=content)

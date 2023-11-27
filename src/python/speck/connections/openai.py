@@ -50,6 +50,8 @@ class OpenAIConnector(IConnector, IChatClient):
         temperature: float = 1.0,
         **config_kwargs
     ) -> OpenAIResponse | Stream:
+        all_kwargs = {**config_kwargs, "temperature": temperature}
+
         input = self._convert_messages_to_prompt(prompt)
 
         if stream:
@@ -63,7 +65,7 @@ class OpenAIConnector(IConnector, IChatClient):
 
             return Stream(
                 iterator=output_stream,
-                kwargs=self._get_log_kwargs(prompt, model, None, **config_kwargs),
+                kwargs=self._get_log_kwargs(prompt, model, None, **all_kwargs),
             )
         else:
             output = self.client.chat.completions.create(
@@ -74,8 +76,7 @@ class OpenAIConnector(IConnector, IChatClient):
                 prompt=prompt,
                 model=model,
                 response=OpenAIResponse(output),
-                temperature=temperature,
-                **config_kwargs,
+                **all_kwargs,
             )
 
         return OpenAIResponse(output)

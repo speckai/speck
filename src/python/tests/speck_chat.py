@@ -1,6 +1,5 @@
 from speck import ChatClient, Message, Prompt
 from speck.chat.client import Providers
-from speck.connections.replicate import ReplicateConfig
 
 # openai_client = Client(
 #     provider=Providers.OpenAI,
@@ -27,7 +26,8 @@ for client in clients:
             messages=[
                 Message(role="system", content="You respond with 1 word answers."),
                 Message(
-                    role="user", content="Respond with YES or NO. Do you understand?"
+                    role="user",
+                    content="Respond with YES or NO. Do you understand? Then, recite the A B Cs",
                 ),
             ],
         ),
