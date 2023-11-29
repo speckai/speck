@@ -1,7 +1,7 @@
 from typing import Literal, Optional
 
 from openai import OpenAI
-from openai._types import NOT_GIVEN, NotGiven
+from openai._types import NotGiven
 from openai.types.chat import ChatCompletion
 
 from ..chat.entities import IChatClient, IChatConfig, Prompt, Response, Stream
@@ -9,6 +9,7 @@ from .connector import IConnector
 from .providers import Providers
 
 OpenAIModel = Literal["gpt-4", "gpt-3.5", "gpt-3.5-turbo"]
+NOT_GIVEN = None
 
 
 class OpenAIResponse(Response):
@@ -63,6 +64,8 @@ class OpenAIConnector(IConnector, IChatClient):
             "frequency_penalty": frequency_penalty,
             "presence_penalty": presence_penalty,
         }
+        # Remove all None values
+        all_kwargs = {k: v for k, v in all_kwargs.items() if v is not None}
 
         input = self._convert_messages_to_prompt(prompt)
 
@@ -70,13 +73,8 @@ class OpenAIConnector(IConnector, IChatClient):
             output_stream = self.client.chat.completions.create(
                 messages=input,
                 model=model,
-                temperature=temperature,
-                max_tokens=max_tokens,
-                top_p=top_p,
-                frequency_penalty=frequency_penalty,
-                presence_penalty=presence_penalty,
                 stream=True,
-                **config_kwargs,
+                **all_kwargs,
             )
 
             return Stream(
@@ -87,12 +85,7 @@ class OpenAIConnector(IConnector, IChatClient):
             output = self.client.chat.completions.create(
                 messages=input,
                 model=model,
-                temperature=temperature,
-                max_tokens=max_tokens,
-                top_p=top_p,
-                frequency_penalty=frequency_penalty,
-                presence_penalty=presence_penalty,
-                **config_kwargs,
+                **all_kwargs,
             )
 
             self.log(

@@ -1,8 +1,13 @@
+from typing import Optional
+
 import replicate
+from openai._types import NotGiven
 
 from ..chat.entities import IChatClient, IChatConfig, Prompt, Response, Stream
 from .connector import IConnector
 from .providers import Providers
+
+NOT_GIVEN = None
 
 
 class ReplicateConnector(IConnector, IChatClient):
@@ -28,11 +33,25 @@ class ReplicateConnector(IConnector, IChatClient):
         prompt: Prompt,
         model: str,
         stream: bool = False,
-        temperature: float = 1.0,
+        temperature: Optional[float] | NotGiven = NOT_GIVEN,
+        max_tokens: Optional[int] | NotGiven = 10,
+        top_p: Optional[float] | NotGiven = NOT_GIVEN,
+        presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
+        top_k: Optional[int] | NotGiven = NOT_GIVEN,
         test: bool = False,
         **config_kwargs
     ) -> Response | Stream:
-        all_kwargs = {**config_kwargs, "temperature": temperature, "test": test}
+        all_kwargs = {
+            **config_kwargs,
+            "temperature": max(temperature, 0.01) if temperature is not None else None,
+            "max_new_tokens": max_tokens,
+            "top_p": top_p,
+            "repetition_penalty": presence_penalty,
+            "top_k": top_k,
+            "test": test,
+        }
+        # Remove all None values
+        all_kwargs = {k: v for k, v in all_kwargs.items() if v is not None}
 
         input = (
             "".join(
@@ -46,7 +65,7 @@ class ReplicateConnector(IConnector, IChatClient):
         print(input)
         output = replicate.run(
             "01-ai/yi-34b-chat:914692bbe8a8e2b91a4e44203e70d170c9c5ccc1359b283c84b0ec8d47819a46",
-            input={"prompt": input},
+            input={"prompt": input, **all_kwargs},
         )
 
         if stream:
