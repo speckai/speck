@@ -1,6 +1,7 @@
-from typing import Literal
+from typing import Literal, Optional
 
 from openai import OpenAI
+from openai._types import NOT_GIVEN, NotGiven
 from openai.types.chat import ChatCompletion
 
 from ..chat.entities import IChatClient, IChatConfig, Prompt, Response, Stream
@@ -47,10 +48,21 @@ class OpenAIConnector(IConnector, IChatClient):
         prompt: Prompt,
         model: OpenAIModel,
         stream: bool = False,
-        temperature: float = 1.0,
+        temperature: Optional[float] | NotGiven = NOT_GIVEN,
+        max_tokens: Optional[int] | NotGiven = NOT_GIVEN,
+        top_p: Optional[float] | NotGiven = NOT_GIVEN,
+        frequency_penalty: Optional[float] | NotGiven = NOT_GIVEN,
+        presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
         **config_kwargs
     ) -> OpenAIResponse | Stream:
-        all_kwargs = {**config_kwargs, "temperature": temperature}
+        all_kwargs = {
+            **config_kwargs,
+            "temperature": temperature,
+            "max_tokens": max_tokens,
+            "top_p": top_p,
+            "frequency_penalty": frequency_penalty,
+            "presence_penalty": presence_penalty,
+        }
 
         input = self._convert_messages_to_prompt(prompt)
 
@@ -59,6 +71,10 @@ class OpenAIConnector(IConnector, IChatClient):
                 messages=input,
                 model=model,
                 temperature=temperature,
+                max_tokens=max_tokens,
+                top_p=top_p,
+                frequency_penalty=frequency_penalty,
+                presence_penalty=presence_penalty,
                 stream=True,
                 **config_kwargs,
             )
@@ -69,7 +85,14 @@ class OpenAIConnector(IConnector, IChatClient):
             )
         else:
             output = self.client.chat.completions.create(
-                messages=input, model=model, temperature=temperature, **config_kwargs
+                messages=input,
+                model=model,
+                temperature=temperature,
+                max_tokens=max_tokens,
+                top_p=top_p,
+                frequency_penalty=frequency_penalty,
+                presence_penalty=presence_penalty,
+                **config_kwargs,
             )
 
             self.log(
