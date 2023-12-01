@@ -83,9 +83,9 @@ class Stream:
             self._has_logged = True
 
             kwargs = self._kwargs
-            kwargs["prompt"] = Prompt(messages=[])
-            kwargs["model"] = self._kwargs.get("model", "")
-            kwargs["response"] = Response(content="", raw={})
+            kwargs["prompt"] = self._kwargs.get("prompt", [])
+            kwargs["model"] = self._kwargs.get("model", "N/A")
+            kwargs["response"] = Response(content=self.message, raw={})
             ChatLogger.log(**kwargs)
 
     def __next__(self) -> Iterator[MessageDelta]:
@@ -96,9 +96,12 @@ class Stream:
             raise
 
     def __iter__(self) -> Iterator[MessageDelta]:
+        self.message: str = ""
         for item in self._iterator:
+            content: str = item if isinstance(item, str) else getattr(item.choices[0].delta, 'content', None)
+            if content:
+                self.message += content
             yield item
-
         self._log()
 
 

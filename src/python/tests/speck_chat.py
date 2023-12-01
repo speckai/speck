@@ -49,9 +49,9 @@ for client in clients:
         ),
         model="gpt-3.5-turbo",
         temperature=0.0,
-        # stream=True,
+        stream=True,
     )
-    print(response)
+    # print(response)
     for r in response:
         print(r)
     print("=" * 10 + "\n" * 2)
