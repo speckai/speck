@@ -26,6 +26,7 @@ install_requires = [
     "openai==1.2.4",
     "pydantic==2.5.0",
     "pydantic_core==2.14.1",
+    "replicate==0.21.0",
     "requests==2.31.0",
     "sniffio==1.3.0",
     "tqdm==4.66.1",
