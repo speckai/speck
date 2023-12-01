@@ -1,5 +1,21 @@
+# Import 2 levels up for speck
+import os
+import sys
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from speck import ChatClient, Message, Prompt
 from speck.chat.client import Providers
+
+from dotenv import load_dotenv
+
+load_dotenv()
+
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+REPLICATE_API_TOKEN = os.getenv("REPLICATE_API_TOKEN")
+print("OpenAI: ", OPENAI_API_KEY)
+print("Replicate: ", REPLICATE_API_TOKEN)
+
 
 # openai_client = Client(
 #     provider=Providers.OpenAI,
@@ -14,7 +30,7 @@ from speck.chat.client import Providers
 
 clients = [
     ChatClient.from_openai(
-        api_key="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"
+        api_key=OPENAI_API_KEY
     ),
     ChatClient.from_replicate(),
 ]
@@ -33,7 +49,7 @@ for client in clients:
         ),
         model="gpt-3.5-turbo",
         temperature=0.0,
-        stream=True,
+        # stream=True,
     )
     print(response)
     for r in response:

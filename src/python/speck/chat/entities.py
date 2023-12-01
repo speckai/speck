@@ -27,6 +27,12 @@ class Prompt:
                 for message in messages
             ]
         )
+    
+    def to_list(self):
+        print("To List")
+        return [
+            {"role": message.role, "content": message.content} for message in self.messages
+        ]
 
     def __str__(self):
         return "\n".join(
