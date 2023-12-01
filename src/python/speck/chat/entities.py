@@ -96,7 +96,7 @@ class Stream:
             raise
 
     def __iter__(self) -> Iterator[MessageDelta]:
-        self.message: str = ""
+        self.message: str = "" # TODO: Do this in a more raw fashion without needing to iterate
         for item in self._iterator:
             content: str = item if isinstance(item, str) else getattr(item.choices[0].delta, 'content', None)
             if content:
