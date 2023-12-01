@@ -18,9 +18,9 @@ class Prompt:
     def __init__(self, messages: str | Message | list[Message]):
         # Todo: Handle string, Message, and list[Message]
         self.messages = messages
-
+    
     @classmethod
-    def from_openai(cls, messages: list[dict[str, str]]):
+    def from_list(cls, messages: list[dict[str, str]]):
         return cls(
             messages=[
                 Message(role=message["role"], content=message["content"])
