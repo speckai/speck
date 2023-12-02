@@ -36,3 +36,13 @@ pip install python-speck
 ## Background
 
 Monitoring LLM apps in production isn't easy.
+
+---
+
+## Development
+
+### Installing Latest Version
+
+```shell
+pip3 install git+https://github.com/speckai/speck.git#subdirectory=src/python
+```
