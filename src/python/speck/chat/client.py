@@ -1,4 +1,4 @@
-from ..chat.entities import IChatClient, Prompt, Response
+from ..chat.entities import IChatClient, Prompt, Response, Stream
 from ..connections.custom import CustomProviderConnector
 from ..connections.openai import OpenAIConnector
 from ..connections.providers import Providers
@@ -42,5 +42,5 @@ class ChatClient(IChatClient):
         """Reads api_key from environment variable if not provided"""
         return ReplicateConnector(api_key=api_key)
 
-    def chat(self, messages: Prompt, model: str, **config_kwargs) -> Response:
+    def chat(self, messages: Prompt, model: str, **config_kwargs) -> Response | Stream:
         return self.connector.chat(messages=messages, model=model, **config_kwargs)

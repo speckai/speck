@@ -4,12 +4,23 @@ from openai import OpenAI
 from openai._types import NotGiven
 from openai.types.chat import ChatCompletion
 
-from ..chat.entities import IChatClient, IChatConfig, Prompt, Response, Stream
+from ..chat.entities import (
+    IChatClient,
+    IChatConfig,
+    MessageDelta,
+    Prompt,
+    Response,
+    Stream,
+)
 from .connector import IConnector
 from .providers import Providers
 
 OpenAIModel = Literal["gpt-4", "gpt-3.5", "gpt-3.5-turbo"]
 NOT_GIVEN = None
+
+
+def _process_chunk(obj) -> MessageDelta:
+    return MessageDelta(content=obj.choices[0].delta.content)
 
 
 class OpenAIResponse(Response):
@@ -80,6 +91,7 @@ class OpenAIConnector(IConnector, IChatClient):
             return Stream(
                 iterator=output_stream,
                 kwargs=self._get_log_kwargs(prompt, model, None, **all_kwargs),
+                processor=_process_chunk,
             )
         else:
             output = self.client.chat.completions.create(

@@ -3,11 +3,22 @@ from typing import Optional
 import replicate
 from openai._types import NotGiven
 
-from ..chat.entities import IChatClient, IChatConfig, Prompt, Response, Stream
+from ..chat.entities import (
+    IChatClient,
+    IChatConfig,
+    MessageDelta,
+    Prompt,
+    Response,
+    Stream,
+)
 from .connector import IConnector
 from .providers import Providers
 
 NOT_GIVEN = None
+
+
+def _process_chunk(obj) -> MessageDelta:
+    return MessageDelta(content=obj)
 
 
 class ReplicateConnector(IConnector, IChatClient):
@@ -72,6 +83,7 @@ class ReplicateConnector(IConnector, IChatClient):
             return Stream(
                 iterator=output,
                 kwargs=self._get_log_kwargs(prompt, model, None, **all_kwargs),
+                processor=_process_chunk,
             )
         else:
             content = "".join(item for item in output)

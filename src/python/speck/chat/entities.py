@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Iterator, Literal
+from typing import Any, Callable, Iterator, Literal
 
 # from dataclasses import dataclass
 from pydantic import BaseModel
@@ -18,7 +18,7 @@ class Prompt:
     def __init__(self, messages: str | Message | list[Message]):
         # Todo: Handle string, Message, and list[Message]
         self.messages = messages
-    
+
     @classmethod
     def from_list(cls, messages: list[dict[str, str]]):
         return cls(
@@ -27,11 +27,12 @@ class Prompt:
                 for message in messages
             ]
         )
-    
+
     def to_list(self):
         print("To List")
         return [
-            {"role": message.role, "content": message.content} for message in self.messages
+            {"role": message.role, "content": message.content}
+            for message in self.messages
         ]
 
     def __str__(self):
@@ -68,13 +69,20 @@ class Response(BaseModel):
 
 
 class MessageDelta(BaseModel):
-    content: str
+    content: str | None
 
 
 class Stream:
-    def __init__(self, iterator, kwargs):
+    # processor that has lambda which returns MessageDelta
+    def __init__(
+        self,
+        iterator: Iterator[Any],
+        kwargs: dict,
+        processor: Callable[[Any], MessageDelta],
+    ):
         self._iterator = iterator
         self._kwargs = kwargs
+        self._processor = processor
         self._has_logged = False
 
     def _log(self):
@@ -88,19 +96,25 @@ class Stream:
             kwargs["response"] = Response(content=self.message, raw={})
             ChatLogger.log(**kwargs)
 
-    def __next__(self) -> Iterator[MessageDelta]:
+    def _process(self, item) -> MessageDelta:
+        return self._processor(item)
+
+    def __next__(self) -> MessageDelta:
         try:
-            return self._iterator.__next__()
+            return self._process(self._iterator.__next__())
         except StopIteration:
             self._log()
             raise
 
     def __iter__(self) -> Iterator[MessageDelta]:
-        self.message: str = "" # TODO: Do this in a more raw fashion without needing to iterate
+        self.message: str = (
+            ""  # TODO: Do this in a more raw fashion without needing to iterate
+        )
         for item in self._iterator:
-            content: str = item if isinstance(item, str) else getattr(item.choices[0].delta, 'content', None)
-            if content:
-                self.message += content
+            item: MessageDelta = self._process(item)
+            # content: str = item if isinstance(item, str) else getattr(item.choices[0].delta, 'content', None)
+            if item.content:
+                self.message += item.content
             yield item
         self._log()
 
