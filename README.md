@@ -44,5 +44,5 @@ Monitoring LLM apps in production isn't easy.
 ### Installing Latest Version
 
 ```shell
-pip3 install git+https://github.com/speckai/speck.git#subdirectory=src/python
+pip3 install --upgrade git+https://github.com/speckai/speck.git#subdirectory=src/python
 ```
