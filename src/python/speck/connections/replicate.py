@@ -44,6 +44,7 @@ class ReplicateConnector(IConnector, IChatClient):
         prompt: Prompt,
         model: str,
         stream: bool = False,
+        _log: bool = True,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         max_tokens: Optional[int] | NotGiven = 10,
         top_p: Optional[float] | NotGiven = NOT_GIVEN,
@@ -82,17 +83,20 @@ class ReplicateConnector(IConnector, IChatClient):
         if stream:
             return Stream(
                 iterator=output,
-                kwargs=self._get_log_kwargs(prompt, model, None, **all_kwargs),
+                kwargs=self._get_log_kwargs(
+                    prompt, model, None, _log=_log, **all_kwargs
+                ),
                 processor=_process_chunk,
             )
         else:
             content = "".join(item for item in output)
 
-            self.log(
-                prompt=prompt,
-                model=model,
-                response=Response(content=content),
-                **all_kwargs,
-            )
+            if _log:
+                self.log(
+                    prompt=prompt,
+                    model=model,
+                    response=Response(content=content),
+                    **all_kwargs,
+                )
 
             return Response(content=content)

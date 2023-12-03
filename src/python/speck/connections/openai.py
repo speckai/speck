@@ -60,6 +60,7 @@ class OpenAIConnector(IConnector, IChatClient):
         prompt: Prompt,
         model: OpenAIModel,
         stream: bool = False,
+        _log: bool = True,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         max_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         top_p: Optional[float] | NotGiven = NOT_GIVEN,
@@ -90,7 +91,9 @@ class OpenAIConnector(IConnector, IChatClient):
 
             return Stream(
                 iterator=output_stream,
-                kwargs=self._get_log_kwargs(prompt, model, None, **all_kwargs),
+                kwargs=self._get_log_kwargs(
+                    prompt, model, None, _log=_log, **all_kwargs
+                ),
                 processor=_process_chunk,
             )
         else:
@@ -100,11 +103,12 @@ class OpenAIConnector(IConnector, IChatClient):
                 **all_kwargs,
             )
 
-            self.log(
-                prompt=prompt,
-                model=model,
-                response=OpenAIResponse(output),
-                **all_kwargs,
-            )
+            if _log:
+                self.log(
+                    prompt=prompt,
+                    model=model,
+                    response=OpenAIResponse(output),
+                    **all_kwargs,
+                )
 
         return OpenAIResponse(output)
