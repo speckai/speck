@@ -58,7 +58,9 @@ class ReplicateConnector(IConnector, IChatClient):
             "temperature": max(temperature, 0.01) if temperature is not None else None,
             "max_new_tokens": max_tokens,
             "top_p": top_p,
-            "repetition_penalty": presence_penalty,
+            "repetition_penalty": max(presence_penalty, 0.01)
+            if presence_penalty
+            else None,
             "top_k": top_k,
             "test": test,
         }
