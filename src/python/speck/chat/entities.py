@@ -84,6 +84,7 @@ class Stream:
         self._kwargs = kwargs
         self._processor = processor
         self._has_logged = False
+        self._closed = False
 
     def _log(self):
         if not self._has_logged:
@@ -100,6 +101,9 @@ class Stream:
         return self._processor(item)
 
     def __next__(self) -> MessageDelta:
+        if self._closed:
+            raise StopIteration
+
         try:
             return self._process(self._iterator.__next__())
         except StopIteration:
@@ -107,6 +111,9 @@ class Stream:
             raise
 
     def __iter__(self) -> Iterator[MessageDelta]:
+        if self._closed:
+            return
+
         self.message: str = (
             ""  # TODO: Do this in a more raw fashion without needing to iterate
         )
@@ -117,6 +124,13 @@ class Stream:
                 self.message += item.content
             yield item
         self._log()
+
+    def close(self):
+        try:
+            self._closed = True
+            self._iterator.response.close()
+        except AttributeError:
+            pass
 
 
 class IChatConfig:
