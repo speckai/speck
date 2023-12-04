@@ -50,6 +50,7 @@ class Response(BaseModel):
     def __init__(
         self,
         content: str,
+        closed: bool = False,
         prompt_tokens: int | None = None,
         completion_tokens: int | None = None,
         raw: dict | None = None,
@@ -80,6 +81,7 @@ class Stream:
         kwargs: dict,
         processor: Callable[[Any], MessageDelta],
     ):
+        self.message: str = ""
         self._iterator = iterator
         self._kwargs = kwargs
         self._processor = processor
@@ -94,36 +96,27 @@ class Stream:
             kwargs = self._kwargs
             kwargs["prompt"] = self._kwargs.get("prompt", [])
             kwargs["model"] = self._kwargs.get("model", "N/A")
-            kwargs["response"] = Response(content=self.message, raw={})
+            kwargs["response"] = Response(content=self.message, raw={}, closed=True)
             ChatLogger.log(**kwargs)
 
     def _process(self, item) -> MessageDelta:
         return self._processor(item)
 
     def __next__(self) -> MessageDelta:
-        if self._closed:
-            raise StopIteration
-
         try:
-            return self._process(self._iterator.__next__())
+            if self._closed:
+                raise StopIteration
+
+            item: MessageDelta = self._process(next(self._iterator))
+            if item.content:
+                self.message += item.content
+            return item
         except StopIteration:
             self._log()
             raise
 
     def __iter__(self) -> Iterator[MessageDelta]:
-        if self._closed:
-            return
-
-        self.message: str = (
-            ""  # TODO: Do this in a more raw fashion without needing to iterate
-        )
-        for item in self._iterator:
-            item: MessageDelta = self._process(item)
-            # content: str = item if isinstance(item, str) else getattr(item.choices[0].delta, 'content', None)
-            if item.content:
-                self.message += item.content
-            yield item
-        self._log()
+        return self
 
     def close(self):
         try:
