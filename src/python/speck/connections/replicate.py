@@ -6,7 +6,7 @@ from openai._types import NotGiven
 from ..chat.entities import (
     IChatClient,
     IChatConfig,
-    MessageDelta,
+    MessageChunk,
     Prompt,
     Response,
     Stream,
@@ -17,8 +17,8 @@ from .providers import Providers
 NOT_GIVEN = None
 
 
-def _process_chunk(obj) -> MessageDelta:
-    return MessageDelta(content=obj)
+def _process_chunk(obj) -> MessageChunk:
+    return MessageChunk(content=obj)
 
 
 class ReplicateConnector(IConnector, IChatClient):

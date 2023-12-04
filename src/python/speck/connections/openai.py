@@ -7,7 +7,7 @@ from openai.types.chat import ChatCompletion
 from ..chat.entities import (
     IChatClient,
     IChatConfig,
-    MessageDelta,
+    MessageChunk,
     Prompt,
     Response,
     Stream,
@@ -19,8 +19,8 @@ OpenAIModel = Literal["gpt-4", "gpt-3.5", "gpt-3.5-turbo"]
 NOT_GIVEN = None
 
 
-def _process_chunk(obj) -> MessageDelta:
-    return MessageDelta(content=obj.choices[0].delta.content)
+def _process_chunk(obj) -> MessageChunk:
+    return MessageChunk(content=obj.choices[0].delta.content)
 
 
 class OpenAIResponse(Response):

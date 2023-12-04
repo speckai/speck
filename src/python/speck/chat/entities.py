@@ -69,7 +69,7 @@ class Response(BaseModel):
         return f"Response({self.content}, raw={self.raw})"
 
 
-class MessageDelta(BaseModel):
+class MessageChunk(BaseModel):
     content: str | None
 
 
@@ -79,7 +79,7 @@ class Stream:
         self,
         iterator: Iterator[Any],
         kwargs: dict,
-        processor: Callable[[Any], MessageDelta],
+        processor: Callable[[Any], MessageChunk],
     ):
         self.message: str = ""
         self._iterator = iterator
@@ -99,15 +99,15 @@ class Stream:
             kwargs["response"] = Response(content=self.message, raw={}, closed=True)
             ChatLogger.log(**kwargs)
 
-    def _process(self, item) -> MessageDelta:
+    def _process(self, item) -> MessageChunk:
         return self._processor(item)
 
-    def __next__(self) -> MessageDelta:
+    def __next__(self) -> MessageChunk:
         try:
             if self._closed:
                 raise StopIteration
 
-            item: MessageDelta = self._process(next(self._iterator))
+            item: MessageChunk = self._process(next(self._iterator))
             if item.content:
                 self.message += item.content
             return item
@@ -115,7 +115,7 @@ class Stream:
             self._log()
             raise
 
-    def __iter__(self) -> Iterator[MessageDelta]:
+    def __iter__(self) -> Iterator[MessageChunk]:
         return self
 
     def close(self):
