@@ -128,6 +128,7 @@ class Stream:
     def close(self):
         try:
             self._closed = True
+            # todo: make this work for packages other than openai
             self._iterator.response.close()
         except AttributeError:
             pass
