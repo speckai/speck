@@ -1,3 +1,9 @@
+"""
+Name: Replicate
+URL: https://replicate.com/
+Features:
+- Chat
+"""
 from typing import Optional
 
 import replicate

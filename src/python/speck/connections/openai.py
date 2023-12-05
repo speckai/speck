@@ -1,3 +1,12 @@
+"""
+Name: OpenAI
+URL: https://platform.openai.com/docs/api-reference
+Features:
+- Chat
+- Vision
+- Text-to-Speech
+- Speech-to-Text
+"""
 from typing import Literal, Optional
 
 from openai import OpenAI
