@@ -10,7 +10,7 @@
     </a>
 </p>
 
-🎊 _We recently launched our python package: `pip install python-speck`_
+🎊 _We recently launched our python package: `pip install speck`_
 
 ---
 
@@ -28,7 +28,7 @@
 ### Python
 
 ```shell
-pip install python-speck
+pip install speck
 ```
 
 ---

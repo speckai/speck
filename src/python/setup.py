@@ -36,15 +36,27 @@ install_requires = [
 
 
 setup(
-    name="python-speck",
+    name="speck",
     packages=find_packages(exclude=["tests", "tests.*"]),
-    version="0.0.2",
-    description="Speck - Unified observability platform for production LLM apps",
+    version="0.0.3",
+    description="Speck - LLM observability framework.",
     long_description=readme(),
     long_description_content_type="text/markdown",
-    keywords=["speck", "openai", "llm", "ai", "chat", "bot", "gpt", "gpt-3"],
+    keywords=[
+        "speck",
+        "openai",
+        "llm",
+        "ai",
+        "chat",
+        "bot",
+        "gpt",
+        "gpt-3",
+        "gpt-4",
+        "anthropic",
+        "replicate",
+    ],
     url="https://github.com/speckai/speck",
-    download_url="https://github.com/speckai/speck/archive/refs/tags/v0.0.1.tar.gz",
+    download_url="https://github.com/speckai/speck/archive/refs/tags/v0.0.3.tar.gz",
     author="Lucas Jaggernauth",
     author_email="luke@speck.chat",
     classifiers=[
