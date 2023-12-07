@@ -17,7 +17,7 @@ pip install wheel
 pip install twine
 
 python setup.py sdist bdist_wheel
-#twine upload dist/*
+twine upload dist/*
 
 # Cleanup
 deactivate
