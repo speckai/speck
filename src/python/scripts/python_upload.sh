@@ -35,3 +35,6 @@ twine upload dist/*
 # Cleanup
 deactivate
 rm -rf dist_venv
+rm -rf speck.egg-info
+rm -rf build
+rm -rf dist

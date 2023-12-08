@@ -1,7 +1,5 @@
 from enum import Enum
 
-from openai import OpenAI as _OpenAI
-
 from ..chat.entities import IChatClient, Prompt, Response, Stream
 from ..connections.custom import CustomProviderConnector
 from ..connections.openai import OpenAIConnector
@@ -55,8 +53,3 @@ class ChatClient(IChatClient):
 
     def chat(self, messages: Prompt, model: str, **config_kwargs) -> Response | Stream:
         return self.connector.chat(messages=messages, model=model, **config_kwargs)
-
-
-class OpenAIWrapper(_OpenAI):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
