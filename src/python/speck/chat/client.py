@@ -1,3 +1,5 @@
+from enum import Enum
+
 from ..chat.entities import IChatClient, Prompt, Response, Stream
 from ..connections.custom import CustomProviderConnector
 from ..connections.openai import OpenAIConnector
@@ -5,10 +7,17 @@ from ..connections.providers import Providers
 from ..connections.replicate import ReplicateConnector
 
 
+class Formats(Enum):
+    OpenAI = "openai"
+    Replicate = "replicate"
+
+
 class ChatClient(IChatClient):
     def __init__(self, provider_config: dict = None, **data):
         self.provider_config = provider_config or {}
         self.connector = self._get_connector(**data)
+        # Todo: add support for this
+        self.format: Formats = Formats.OpenAI
 
     def _get_connector(self, **data) -> IChatClient:
         if self.provider == Providers.OpenAI:
