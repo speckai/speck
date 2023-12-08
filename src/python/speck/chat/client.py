@@ -57,5 +57,6 @@ class ChatClient(IChatClient):
         return self.connector.chat(messages=messages, model=model, **config_kwargs)
 
 
-class OpenAI(_OpenAI):
-    pass
+class OpenAIWrapper(_OpenAI):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
