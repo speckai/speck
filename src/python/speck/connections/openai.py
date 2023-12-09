@@ -14,6 +14,7 @@ from openai._types import NotGiven
 from openai.types.chat import ChatCompletion
 
 from ..chat.entities import (
+    NOT_GIVEN,
     ChatConfig,
     IChatClient,
     MessageChunk,
@@ -24,9 +25,6 @@ from ..chat.entities import (
 )
 from .connector import IConnector
 from .providers import Providers
-
-OpenAIModel = Literal["gpt-4", "gpt-3.5", "gpt-3.5-turbo"]
-NOT_GIVEN = None
 
 
 def _process_chunk(obj) -> MessageChunk:
@@ -56,28 +54,21 @@ class OpenAIConnector(IConnector, IChatClient):
         return [{"role": msg.role, "content": msg.content} for msg in messages.messages]
 
     def chat(
-        self, config: ChatConfig = NOT_GIVEN, **config_kwargs
+        self, prompt: Prompt, config: ChatConfig = NOT_GIVEN, **config_kwargs
     ) -> OpenAIResponse | Stream:
         if config is NOT_GIVEN:
-            config = OpenAIChatConfig(**config_kwargs)
+            config = ChatConfig(**config_kwargs)
+            # Todo: convert to default config based on class param
 
-        all_kwargs = {
-            **config_kwargs,
-            "temperature": temperature,
-            "max_tokens": max_tokens,
-            "top_p": top_p,
-            "frequency_penalty": frequency_penalty,
-            "presence_penalty": presence_penalty,
-        }
         # Remove all None values
-        all_kwargs = {k: v for k, v in all_kwargs.items() if v is not None}
+        all_kwargs = {k: v for k, v in vars(config).items() if v is not None}
 
         input = self._convert_messages_to_prompt(prompt)
 
-        if stream:
+        if config.stream:
             output_stream = self.client.chat.completions.create(
                 messages=input,
-                model=model,
+                model=config.model,
                 stream=True,
                 **all_kwargs,
             )
@@ -85,21 +76,21 @@ class OpenAIConnector(IConnector, IChatClient):
             return Stream(
                 iterator=output_stream,
                 kwargs=self._get_log_kwargs(
-                    prompt, model, None, _log=_log, **all_kwargs
+                    prompt, config.model, None, _log=config._log, **all_kwargs
                 ),
                 processor=_process_chunk,
             )
         else:
             output = self.client.chat.completions.create(
                 messages=input,
-                model=model,
+                model=config.model,
                 **all_kwargs,
             )
 
-            if _log:
+            if config._log:
                 self.log(
                     prompt=prompt,
-                    model=model,
+                    model=config.model,
                     response=OpenAIResponse(output),
                     **all_kwargs,
                 )

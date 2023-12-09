@@ -6,10 +6,10 @@ from openai._types import NotGiven
 # from dataclasses import dataclass
 from pydantic import BaseModel
 
-from .. import OpenAIModel
 from ..chat.logger import ChatLogger
 
 MessageRole = Literal["system", "user", "assistant"]
+OpenAIModel = Literal["gpt-4", "gpt-3.5", "gpt-3.5-turbo"]
 NOT_GIVEN = None
 
 
