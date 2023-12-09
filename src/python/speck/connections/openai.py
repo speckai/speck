@@ -96,12 +96,3 @@ class OpenAIConnector(IConnector, IChatClient):
                 )
 
         return OpenAIResponse(output)
-
-
-class OpenAIConnector(IConnector, IChatClient):
-    def chat(
-        self, prompt: Prompt, config: ChatConfig = NOT_GIVEN, **config_kwargs
-    ) -> Response | Stream:
-        if config is NOT_GIVEN:
-            config = OpenAIChatConfig(**config_kwargs)
-        pass

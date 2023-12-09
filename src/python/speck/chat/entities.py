@@ -32,7 +32,7 @@ class Prompt:
             ]
         )
 
-    def to_openai(self):
+    def to_list(self):
         print("To List")
         return [
             {"role": message.role, "content": message.content}
@@ -176,6 +176,16 @@ class ChatConfig:
             )
 
         return self
+
+    def log_chat(self, prompt: Prompt, response: Response, provider: str = "speck"):
+        config = self.convert()
+        ChatLogger.log(
+            provider=provider,
+            model=config.model,
+            prompt=prompt,
+            response=response,
+            **config._kwargs,
+        )
 
 
 class OpenAIChatConfig(ChatConfig):
