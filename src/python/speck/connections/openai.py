@@ -14,9 +14,10 @@ from openai._types import NotGiven
 from openai.types.chat import ChatCompletion
 
 from ..chat.entities import (
+    ChatConfig,
     IChatClient,
-    IChatConfig,
     MessageChunk,
+    OpenAIChatConfig,
     Prompt,
     Response,
     Stream,
@@ -44,16 +45,6 @@ class OpenAIResponse(Response):
         )
 
 
-class OpenAIChatConfig(IChatConfig):
-    """
-    NOT USED ANYMORE. REPLACED BY **kwargs
-    """
-
-    def __init__(self, temperature: float = 1.0, **kwargs):
-        super().__init__(**kwargs)
-        self.temperature = temperature
-
-
 class OpenAIConnector(IConnector, IChatClient):
     def __init__(self, api_key: str):
         super().__init__(provider=Providers.OpenAI)
@@ -65,18 +56,11 @@ class OpenAIConnector(IConnector, IChatClient):
         return [{"role": msg.role, "content": msg.content} for msg in messages.messages]
 
     def chat(
-        self,
-        prompt: Prompt,
-        model: OpenAIModel,
-        stream: bool = False,
-        _log: bool = True,
-        temperature: Optional[float] | NotGiven = NOT_GIVEN,
-        max_tokens: Optional[int] | NotGiven = NOT_GIVEN,
-        top_p: Optional[float] | NotGiven = NOT_GIVEN,
-        frequency_penalty: Optional[float] | NotGiven = NOT_GIVEN,
-        presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
-        **config_kwargs
+        self, config: ChatConfig = NOT_GIVEN, **config_kwargs
     ) -> OpenAIResponse | Stream:
+        if config is NOT_GIVEN:
+            config = OpenAIChatConfig(**config_kwargs)
+
         all_kwargs = {
             **config_kwargs,
             "temperature": temperature,
@@ -121,3 +105,12 @@ class OpenAIConnector(IConnector, IChatClient):
                 )
 
         return OpenAIResponse(output)
+
+
+class OpenAIConnector(IConnector, IChatClient):
+    def chat(
+        self, prompt: Prompt, config: ChatConfig = NOT_GIVEN, **config_kwargs
+    ) -> Response | Stream:
+        if config is NOT_GIVEN:
+            config = OpenAIChatConfig(**config_kwargs)
+        pass

@@ -1,12 +1,16 @@
 from abc import ABC, abstractmethod
-from typing import Any, Callable, Iterator, Literal
+from typing import Any, Callable, Iterator, Literal, Optional, Self
+
+from openai._types import NotGiven
 
 # from dataclasses import dataclass
 from pydantic import BaseModel
 
+from .. import OpenAIModel
 from ..chat.logger import ChatLogger
 
 MessageRole = Literal["system", "user", "assistant"]
+NOT_GIVEN = None
 
 
 class Message(BaseModel):
@@ -20,7 +24,7 @@ class Prompt:
         self.messages = messages
 
     @classmethod
-    def from_list(cls, messages: list[dict[str, str]]):
+    def from_openai(cls, messages: list[dict[str, str]]):
         return cls(
             messages=[
                 Message(role=message["role"], content=message["content"])
@@ -28,7 +32,7 @@ class Prompt:
             ]
         )
 
-    def to_list(self):
+    def to_openai(self):
         print("To List")
         return [
             {"role": message.role, "content": message.content}
@@ -127,11 +131,93 @@ class Stream:
             pass
 
 
-class IChatConfig:
-    def __init__(self, **kwargs):
-        self.kwargs = kwargs
-        # for key, value in kwargs.items():
-        #     setattr(self, key, value)
+class ChatConfig:
+    # Todo: add typed params here
+
+    # Todo: Create universal config format
+    # Todo: Create conversions to other formats
+    def __init__(
+        self,
+        model: OpenAIModel,
+        stream: bool = False,
+        _log: bool = True,
+        temperature: Optional[float] | NotGiven = NOT_GIVEN,
+        max_tokens: Optional[int] | NotGiven = NOT_GIVEN,
+        top_p: Optional[float] | NotGiven = NOT_GIVEN,
+        frequency_penalty: Optional[float] | NotGiven = NOT_GIVEN,
+        presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
+        **config_kwargs,
+    ):
+        self.model = model
+        self.stream = stream
+        self._log = _log
+        self.temperature = temperature
+        self.max_tokens = max_tokens
+        self.top_p = top_p
+        self.frequency_penalty = frequency_penalty
+        self.presence_penalty = presence_penalty
+        self._kwargs = config_kwargs
+
+    def convert(self, provider: str = "speck") -> Self:
+        """
+        Convert to another config format
+        """
+        if provider == "openai":
+            return OpenAIChatConfig(
+                model=self.model,
+                stream=self.stream,
+                _log=self._log,
+                temperature=self.temperature,
+                max_tokens=self.max_tokens,
+                top_p=self.top_p,
+                frequency_penalty=self.frequency_penalty,
+                presence_penalty=self.presence_penalty,
+                **self._kwargs,
+            )
+
+        return self
+
+
+class OpenAIChatConfig(ChatConfig):
+    def __init__(
+        self,
+        model: OpenAIModel,
+        stream: bool = False,
+        _log: bool = True,
+        temperature: Optional[float] | NotGiven = NOT_GIVEN,
+        max_tokens: Optional[int] | NotGiven = NOT_GIVEN,
+        top_p: Optional[float] | NotGiven = NOT_GIVEN,
+        frequency_penalty: Optional[float] | NotGiven = NOT_GIVEN,
+        presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
+        **config_kwargs,
+    ):
+        self.model = model
+        self.stream = stream
+        self._log = _log
+        self.temperature = temperature
+        self.max_tokens = max_tokens
+        self.top_p = top_p
+        self.frequency_penalty = frequency_penalty
+        self.presence_penalty = presence_penalty
+        self._kwargs = config_kwargs
+
+    def convert(self, provider: str = "speck") -> ChatConfig:
+        """
+        Maps config to universal format then converts to another config format
+        """
+        universal_config = ChatConfig(
+            model=self.model,
+            stream=self.stream,
+            _log=self._log,
+            temperature=self.temperature,
+            max_tokens=self.max_tokens,
+            top_p=self.top_p,
+            frequency_penalty=self.frequency_penalty,
+            presence_penalty=self.presence_penalty,
+            **self._kwargs,
+        )
+
+        return universal_config.convert(provider=provider)
 
 
 class IChatClient(ABC):
@@ -139,9 +225,7 @@ class IChatClient(ABC):
     def chat(
         self,
         prompt: Prompt,
-        model: str,
-        stream: bool = False,
-        config: IChatConfig = IChatConfig(),
+        config: ChatConfig | NotGiven = NOT_GIVEN,
         **config_kwargs,
     ) -> Response | Stream:
         pass

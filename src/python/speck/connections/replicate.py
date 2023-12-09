@@ -10,8 +10,8 @@ import replicate
 from openai._types import NotGiven
 
 from ..chat.entities import (
+    ChatConfig,
     IChatClient,
-    IChatConfig,
     MessageChunk,
     Prompt,
     Response,
