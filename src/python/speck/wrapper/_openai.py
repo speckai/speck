@@ -19,7 +19,7 @@ def wrapper(original_method, *args, **kwargs):
         The result of the original method call.
     """
     logger.info(f"Before calling {original_method.__name__}")
-    result = original_method(self, *args, **kwargs)
+    result = original_method(*args, **kwargs)
     logger.info(f"After calling {original_method.__name__}")
     return result
 
