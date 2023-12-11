@@ -76,6 +76,10 @@ class Response(BaseModel):
 class MessageChunk(BaseModel):
     content: str | None
 
+    def encode(self, encoding: str = "utf-8"):
+        content = self.content or ""
+        return content.encode(encoding)
+
 
 class Stream:
     # processor that has lambda which returns MessageDelta
@@ -180,8 +184,8 @@ class ChatConfig:
     def log_chat(self, prompt: Prompt, response: Response, provider: str = "speck"):
         config = self.convert()
         ChatLogger.log(
-            provider=provider,
-            model=config.model,
+            provider=str(provider),
+            model=str(config.model),
             prompt=prompt,
             response=response,
             **config._kwargs,
