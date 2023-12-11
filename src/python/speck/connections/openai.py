@@ -69,7 +69,6 @@ class OpenAIConnector(IConnector, IChatClient):
         if config.stream:
             output_stream = self.client.chat.completions.create(
                 messages=input,
-                stream=True,
                 **filter_kwargs(self.client.chat.completions.create, all_kwargs),
             )
 
