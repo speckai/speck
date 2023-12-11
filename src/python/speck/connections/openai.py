@@ -74,9 +74,7 @@ class OpenAIConnector(IConnector, IChatClient):
 
             return Stream(
                 iterator=output_stream,
-                kwargs=self._get_log_kwargs(
-                    prompt, config.model, None, _log=config._log, **all_kwargs
-                ),
+                kwargs=self._get_log_kwargs(prompt, None, **all_kwargs),
                 processor=_process_chunk,
             )
         else:

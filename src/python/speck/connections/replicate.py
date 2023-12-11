@@ -91,9 +91,7 @@ class ReplicateConnector(IConnector, IChatClient):
         if stream:
             return Stream(
                 iterator=output,
-                kwargs=self._get_log_kwargs(
-                    prompt, model, None, _log=_log, **all_kwargs
-                ),
+                kwargs=self._get_log_kwargs(prompt, None, _log=_log, **all_kwargs),
                 processor=_process_chunk,
             )
         else:

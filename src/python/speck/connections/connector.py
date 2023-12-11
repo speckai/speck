@@ -13,17 +13,16 @@ class IConnector(ABC):
     # def process_message(self, messages: Messages, model: str) -> str:
     #     pass
 
-    def _get_log_kwargs(self, prompt: Prompt, model: str, response: Response, **kwargs):
+    def _get_log_kwargs(self, prompt: Prompt, response: Response, **kwargs):
         return {
             "provider": self.provider,
             "prompt": prompt,
-            "model": model,
+            "config": kwargs,
             "response": response,
-            **kwargs,
         }
 
     def log(self, prompt: Prompt, model: str, response: Response, **kwargs):
-        ChatLogger.log(**self._get_log_kwargs(prompt, model, response, **kwargs))
+        ChatLogger.log(**self._get_log_kwargs(prompt, response, **kwargs))
 
     def __str__(self):
         return f"Client({self.provider.value})"
