@@ -1,7 +1,10 @@
 <p align="center">
-    <img src="../../assets/speck_banner.jpg">
+    <img src="https://raw.githubusercontent.com/speckai/speck/main/assets/speck_banner.jpg">
 </p>
 <p align="center">
+    <a href="https://pypi.org/project/speck/">
+        <img src="https://img.shields.io/pypi/pyversions/speck" />
+    </a>
     <a href="https://discord.com/invite/frnaYYaKj3">
         <img src="https://dcbadge.vercel.app/api/server/frnaYYaKj3?style=flat" />
     </a>
