@@ -23,6 +23,7 @@ from ..chat.entities import (
     Response,
     Stream,
 )
+from ..util import filter_kwargs
 from .connector import IConnector
 from .providers import Providers
 
@@ -68,9 +69,8 @@ class OpenAIConnector(IConnector, IChatClient):
         if config.stream:
             output_stream = self.client.chat.completions.create(
                 messages=input,
-                model=config.model,
                 stream=True,
-                **all_kwargs,
+                **filter_kwargs(self.client.chat.completions.create, all_kwargs),
             )
 
             return Stream(
@@ -83,16 +83,15 @@ class OpenAIConnector(IConnector, IChatClient):
         else:
             output = self.client.chat.completions.create(
                 messages=input,
-                model=config.model,
-                **all_kwargs,
+                **filter_kwargs(self.client.chat.completions.create, all_kwargs),
             )
 
             if config._log:
                 self.log(
                     prompt=prompt,
-                    model=config.model,
                     response=OpenAIResponse(output),
                     **all_kwargs,
                 )
+                # Todo: set config= as param
 
         return OpenAIResponse(output)
