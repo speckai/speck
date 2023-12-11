@@ -18,10 +18,36 @@ class Message(BaseModel):
     content: str
 
 
-class Prompt:
-    def __init__(self, messages: str | Message | list[Message]):
-        # Todo: Handle string, Message, and list[Message]
+class Prompt(str):
+    def __init__(
+        self, messages: str | Message | list[Message] | list[dict[str, str]], **kwargs
+    ):
+        if isinstance(messages, str):
+            messages = [Message(role="user", content=messages)]
+        elif isinstance(messages, Message):
+            messages = [messages]
+        elif isinstance(messages, list):
+            if all(isinstance(message, Message) for message in messages):
+                pass
+            elif all(isinstance(message, dict) for message in messages):
+                messages = [
+                    Message(role=message["role"], content=message["content"])
+                    for message in messages
+                ]
+            else:
+                raise ValueError(
+                    f"Invalid type for messages: {type(messages)}\n{messages}"
+                )
+
         self.messages = messages
+        super().__init__()
+
+    def __new__(
+        cls, messages: str | Message | list[Message] | list[dict[str, str]], **kwargs
+    ):
+        # Todo: Handle string, Message, and list[Message]
+        instance = super(Prompt, cls).__new__(cls, str(messages))
+        return instance
 
     @classmethod
     def from_openai(cls, messages: list[dict[str, str]]):
@@ -38,6 +64,16 @@ class Prompt:
             {"role": message.role, "content": message.content}
             for message in self.messages
         ]
+
+    def format(self, *args, **kwargs):
+        return self.__class__(
+            messages=[
+                Message(
+                    role=message.role, content=message.content.format(*args, **kwargs)
+                )
+                for message in self.messages
+            ]
+        )
 
     def __str__(self):
         return "\n".join(
