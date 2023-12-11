@@ -23,7 +23,7 @@ install_requires = [
 setup(
     name="speck",
     packages=find_packages(exclude=["tests", "tests.*"]),
-    version="0.0.5",
+    version="0.0.6",
     description="Speck - LLM observability framework.",
     long_description=readme(),
     long_description_content_type="text/markdown",
@@ -41,7 +41,7 @@ setup(
         "replicate",
     ],
     url="https://github.com/speckai/speck",
-    download_url="https://github.com/speckai/speck/archive/refs/tags/v0.0.5.tar.gz",
+    download_url="https://github.com/speckai/speck/archive/refs/tags/v0.0.6.tar.gz",
     author="Lucas Jaggernauth",
     author_email="luke@speck.chat",
     classifiers=[
