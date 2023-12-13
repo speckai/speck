@@ -1,0 +1,27 @@
+<prompt prompt1>
+    <system>
+        You are an example.
+    <user>
+        Hello
+    </prompt>
+
+    <prompt prompt2>
+    <system>
+        prompt = "example_prompt"
+    <user>
+        Follow up question!
+</prompt>
+
+<prompt prompt2>
+<system>
+    You are an example.
+<user>
+    Hello
+</prompt>
+
+<prompt prompt2>
+<system>
+    prompt = "example_prompt"
+<user>
+    Follow up question!
+</prompt>

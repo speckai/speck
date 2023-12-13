@@ -1,5 +1,5 @@
 class Promptfile:
-    """A class for loading and parsing promptfiles."""
+    """A class for loading and parsing .prompt files"""
 
     def __init__(self, filepath: str):
         self.filepath = filepath
