@@ -1,0 +1,19 @@
+<prompt intro>
+    <system>
+        You are a helpful assistant.
+    <user>
+        Hello!
+    <assistant>
+        Hi, how are you, {NAME}?
+    <user>
+        I'm fine, thanks. How are you?
+</prompt>
+
+<prompt ask>
+    <user>
+        What date is today?
+    <assistant>
+        Today is {DATE}.
+    <user>
+        What time is it?
+</prompt>

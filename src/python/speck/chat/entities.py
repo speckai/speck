@@ -18,9 +18,20 @@ class Message(BaseModel):
     content: str
 
 
+class SafeDict(dict):
+    def __missing__(self, key):
+        return "{" + key + "}"  # Returns the key in curly braces as a string
+
+
 class Prompt(str):
+    messages: list[Message]
+    variables: dict[str, str] | None = None
+
     def __init__(
-        self, messages: str | Message | list[Message] | list[dict[str, str]], **kwargs
+        self,
+        messages: str | Message | list[Message] | list[dict[str, str]],
+        variables: dict[str, str] | None = None,
+        **kwargs,
     ):
         if isinstance(messages, str):
             messages = [Message(role="user", content=messages)]
@@ -40,6 +51,7 @@ class Prompt(str):
                 )
 
         self.messages = messages
+        self.variables = variables
         super().__init__()
 
     @classmethod
@@ -173,19 +185,64 @@ class Prompt(str):
     def to_list(self):
         print("To List")
         return [
-            {"role": message.role, "content": message.content}
+            {
+                "role": message.role,
+                "content": message.content.format_map(SafeDict(self.variables or {})),
+            }
             for message in self.messages
         ]
 
     def format(self, *args, **kwargs):
+        # return self.__class__(
+        #     messages=[
+        #         Message(
+        #             role=message.role, content=message.content.format(*args, **kwargs)
+        #         )
+        #         for message in self.messages
+        #     ]
+        # )
         return self.__class__(
             messages=[
-                Message(
-                    role=message.role, content=message.content.format(*args, **kwargs)
-                )
+                Message(role=message.role, content=message.content)
                 for message in self.messages
-            ]
+            ],
+            variables={**SafeDict(self.variables or {}), **kwargs},
         )
+
+    def __add__(self, other):
+        if isinstance(other, Message):
+            return self.__class__(
+                messages=self.messages + [other], variables={**(self.variables or {})}
+            )
+        elif isinstance(other, Prompt):
+            # Check if there are duplicate keys
+            duplicate_keys = set(self.variables.keys()).intersection(
+                set(other.variables.keys())
+            )
+            messages = self.messages
+            if duplicate_keys:
+                for key in duplicate_keys:
+                    if self.variables[key] != other.variables[key]:
+                        # Insert it into prompt
+                        messages = messages.copy()
+                        for i, message in enumerate(messages):
+                            # Todo: handle duplicate keys in backend
+                            messages[i] = Message(
+                                role=message.role,
+                                content=message.content.format_map(
+                                    SafeDict(self.variables or {})
+                                ),
+                            )
+
+            return self.__class__(
+                messages=messages + other.messages,
+                variables={
+                    **SafeDict(self.variables or {}),
+                    **SafeDict(other.variables or {}),
+                },
+            )
+        else:
+            raise NotImplementedError
 
     def __str__(self):
         return "\n".join(
