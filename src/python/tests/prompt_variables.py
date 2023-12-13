@@ -12,6 +12,7 @@ new_prompt = (
 
 a = Prompt(messages=[Message(role="system", content="Hello, {NAME}!")])
 b = Prompt(messages=[Message(role="system", content="How are you {NAME}?")])
-new_prompt = a.format(NAME="Person A") + b.format(NAME="Person A")
+new_prompt = a.format(NAME="Person A") + b  # .format(NAME="Person A")
+new_prompt = new_prompt.format(NAME="Person B")
 
 print(new_prompt)

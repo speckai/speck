@@ -192,6 +192,38 @@ class Prompt(str):
             for message in self.messages
         ]
 
+    @staticmethod
+    def _apply_variables(
+        messages: list[Message], variables: dict[str, str]
+    ) -> list[Message]:
+        return [
+            Message(
+                role=message.role,
+                content=message.content.format_map(SafeDict(variables or {})),
+            )
+            for message in messages
+        ]
+
+    def _check_duplicate_keys(self, other_variables: dict[str, str]) -> dict[str, str]:
+        duplicate_keys = set((self.variables or {}).keys()).intersection(
+            set((other_variables or {}).keys())
+        )
+        return {
+            key: self.variables[key]
+            for key in duplicate_keys
+            if self.variables[key] != other_variables[key]
+        }
+
+    def _remove_duplicate_keys_from_messages(
+        self, other_variables: dict[str, str]
+    ) -> list[Message]:
+        messages = self.messages
+        applied_variables = self._check_duplicate_keys(other_variables)
+        if len(applied_variables) > 0:
+            messages = self._apply_variables(self.messages, applied_variables)
+
+        return messages
+
     def format(self, *args, **kwargs):
         # return self.__class__(
         #     messages=[
@@ -201,10 +233,12 @@ class Prompt(str):
         #         for message in self.messages
         #     ]
         # )
+
+        messages = self._remove_duplicate_keys_from_messages(kwargs)
         return self.__class__(
             messages=[
                 Message(role=message.role, content=message.content)
-                for message in self.messages
+                for message in messages
             ],
             variables={**SafeDict(self.variables or {}), **kwargs},
         )
@@ -216,23 +250,7 @@ class Prompt(str):
             )
         elif isinstance(other, Prompt):
             # Check if there are duplicate keys
-            duplicate_keys = set(self.variables.keys()).intersection(
-                set(other.variables.keys())
-            )
-            messages = self.messages
-            if duplicate_keys:
-                for key in duplicate_keys:
-                    if self.variables[key] != other.variables[key]:
-                        # Insert it into prompt
-                        messages = messages.copy()
-                        for i, message in enumerate(messages):
-                            # Todo: handle duplicate keys in backend
-                            messages[i] = Message(
-                                role=message.role,
-                                content=message.content.format_map(
-                                    SafeDict(self.variables or {})
-                                ),
-                            )
+            messages = self._remove_duplicate_keys_from_messages(other.variables or {})
 
             return self.__class__(
                 messages=messages + other.messages,
@@ -245,8 +263,12 @@ class Prompt(str):
             raise NotImplementedError
 
     def __str__(self):
-        return "\n".join(
-            [f"{message.role}: {message.content}" for message in self.messages]
+        return (
+            "\n".join(
+                [f"{message.role}: {message.content}" for message in self.messages]
+            )
+            + "\n"
+            + str(self.variables or {})
         )
 
 
