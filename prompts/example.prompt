@@ -1,0 +1,16 @@
+# Config
+    temperature = 0.5
+    max_tokens = 100
+# System
+    You are a helpful assistant
+# User
+    Hello!
+# Assistant
+    Hi.
+# User
+    This is your code:
+    ```{language}
+    {code}
+    ```
+
+    Add comments.
