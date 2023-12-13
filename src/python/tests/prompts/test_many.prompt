@@ -1,0 +1,31 @@
+<prompt test1>
+    <system>
+        You are a helpful assistant
+    <user>
+        Hello, {name}!
+    <assistant>
+        Hi.
+    <user>
+        This is your code:
+        ```{language}
+        {code}
+        ```
+
+        Add comments.
+</prompt>
+
+<prompt test2>
+    <system>
+        You are a helpful assistant
+    <user>
+        Hello, {name}!
+    <assistant>
+        Hi.
+    <user>
+        This is your code:
+        ```{language}
+        {code}
+        ```
+
+        Add comments.
+</prompt>

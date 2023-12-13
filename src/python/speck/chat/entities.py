@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, Callable, Iterator, Literal, Optional, Self
+from typing import Any, Callable, Iterator, List, Literal, Optional, Self
 
 from openai._types import NotGiven
 
@@ -43,46 +43,91 @@ class Prompt(str):
         super().__init__()
 
     @classmethod
-    def read(cls, path: str):
-        with open(path, "r") as f:
-            # Todo: add config parsing
-            config = {}
-            messages = []
+    def _read(cls, lines: str) -> Self:
+        # Todo: add config parsing
+        config = {}
+        messages = []
 
-            current_min_spaces = 0
-            current_section = None
-            current_message = []
+        current_min_spaces = 0
+        current_section = None
+        current_message = []
 
-            def add_message():
-                nonlocal current_message, min_spaces
-                if current_message:
-                    messages.append(
-                        Message(
-                            role=current_section,
-                            content="\n".join(
-                                [m[min_spaces:] for m in current_message]
-                            ),
-                        )
+        def add_message():
+            nonlocal current_message, min_spaces
+            if current_message:
+                messages.append(
+                    Message(
+                        role=current_section,
+                        content="\n".join([m[min_spaces:] for m in current_message]),
                     )
-                    current_message = []
-                    min_spaces = 0
+                )
+                current_message = []
+                min_spaces = 0
+
+        for line in lines.splitlines():
+            line = line.rstrip("\r")
+            if line.startswith("<"):
+                line = line.strip()
+                add_message()
+                current_section = line[1:-1].lower()
+            elif current_section == "config" and "=" in line:
+                key, value = line.split("=", 1)
+                config[key.strip()] = value.strip()
+            elif current_section in ["system", "user", "assistant"]:
+                min_spaces = len(line) - len(line.lstrip())
+                if 0 < min_spaces < current_min_spaces or current_min_spaces == 0:
+                    current_min_spaces = min_spaces
+                current_message.append(line)
+
+        add_message()
+        return cls(messages=messages)
+
+    @classmethod
+    def read(cls, path: str, name: str | None = None) -> Self:
+        with open(path, "r") as f:
+            if name is not None:
+                prompts = cls.read_all(path)
+                return prompts[name]
+            else:
+                return cls._read(f.read())
+
+    @classmethod
+    def read_all(cls, path: str) -> dict[str, Self]:
+        with open(path, "r") as f:
+            prompts = {}
+            lines = []
+            current_prompt_name = None
+            current_min_spaces = -1
 
             for line in f:
                 line = line.rstrip("\n").rstrip("\r")
-                if line.startswith("<"):
-                    add_message()
-                    current_section = line[1:-1].strip().lower()
-                elif current_section == "config" and "=" in line:
-                    key, value = line.split("=", 1)
-                    config[key.strip()] = value.strip()
-                elif current_section in ["system", "user", "assistant"]:
+                if line.lstrip().startswith("<"):
                     min_spaces = len(line) - len(line.lstrip())
-                    if 0 < min_spaces < current_min_spaces or current_min_spaces == 0:
-                        current_min_spaces = min_spaces
-                    current_message.append(line)
+                    stripped_line = line.strip()
 
-            add_message()
-            return cls(messages=messages)
+                    if stripped_line.startswith("<prompt") and min_spaces == 0:
+                        if current_prompt_name:
+                            prompts[current_prompt_name] = cls._read(
+                                "\n".join([m[current_min_spaces:] for m in lines])
+                            )
+                        current_prompt_name = stripped_line[8:-1].strip()
+                        current_min_spaces = -1
+                        lines = []
+                    elif stripped_line.startswith("</prompt>") and min_spaces == 0:
+                        prompts[current_prompt_name] = cls._read(
+                            "\n".join([m[current_min_spaces:] for m in lines])
+                        )
+                        current_prompt_name = None
+                        current_min_spaces = -1
+                        lines = []
+                    else:
+                        lines.append(line)
+                        if current_min_spaces == -1 or min_spaces < current_min_spaces:
+                            current_min_spaces = min_spaces
+                else:
+                    lines.append(line)
+
+            return prompts
 
     def __new__(
         cls, messages: str | Message | list[Message] | list[dict[str, str]], **kwargs

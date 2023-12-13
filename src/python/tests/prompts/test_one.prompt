@@ -1,4 +1,3 @@
-<prompt example>
 <system>
     You are a helpful assistant
 <user>
@@ -12,4 +11,3 @@
     ```
 
     Add comments.
-</prompt>
