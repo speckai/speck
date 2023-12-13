@@ -9,7 +9,7 @@ with open(".env") as f:
 import os
 
 from openai import OpenAI
-from speck import Speck
+from speck import ChatConfig, Prompt, Response, Speck
 
 client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
 speck = Speck(api_key=None)
@@ -25,6 +25,12 @@ kwargs = {
 completion = client.chat.completions.create(
     **kwargs,
     stream=False,
+)
+
+speck.chat.log(
+    Prompt(kwargs["messages"]),
+    ChatConfig(model=kwargs["model"]),
+    Response(completion.choices[0].message.content),
 )
 
 print(completion.choices[0].message)

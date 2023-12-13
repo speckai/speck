@@ -1,12 +1,12 @@
-from . import Prompt
+from .chat.entities import ChatConfig, Prompt, Response
 
 
 class Chat:
     def __init__(self, client: "Speck"):
         self.client = client
 
-    def log(self, messages: Prompt, response: str):
-        pass
+    def log(self, messages: Prompt, config: ChatConfig, response: Response):
+        config.log_chat(messages, response)
 
 
 class Speck:
