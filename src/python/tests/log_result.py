@@ -17,7 +17,7 @@ speck = Speck(api_key=None)
 kwargs = {
     "model": "gpt-3.5-turbo",
     "messages": [
-        {"role": "system", "content": "hi"},
+        {"role": "system", "content": "hi {name}"},
         {"role": "user", "content": "hi"},
     ],
 }
@@ -28,7 +28,7 @@ completion = client.chat.completions.create(
 )
 
 speck.chat.log(
-    Prompt(kwargs["messages"]),
+    Prompt(kwargs["messages"]).format(**{"name": "John"}),
     ChatConfig(model=kwargs["model"]),
     Response(completion.choices[0].message.content),
 )

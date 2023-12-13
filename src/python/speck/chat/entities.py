@@ -192,6 +192,15 @@ class Prompt(str):
             for message in self.messages
         ]
 
+    def to_dict(self):
+        return {
+            "messages": [
+                {"role": message.role, "content": message.content}
+                for message in self.messages
+            ],
+            "variables": self.variables or {},
+        }
+
     @staticmethod
     def _apply_variables(
         messages: list[Message], variables: dict[str, str]

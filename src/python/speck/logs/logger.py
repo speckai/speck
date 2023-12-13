@@ -22,7 +22,7 @@ def universal_format_log(
             # Todo: Fix typing for Providers enum (circular import)
             "provider": provider.value if hasattr(provider, "value") else provider,
             "model": model,
-            "messages": prompt.to_list(),
+            **prompt.to_dict(),
             **kwargs,
         },
         "output": response.model_dump(),
