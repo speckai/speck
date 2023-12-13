@@ -9,10 +9,10 @@ with open(".env") as f:
 import os
 
 from openai import OpenAI
-from speck import Client
+from speck import Speck
 
 client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
-speck =
+speck = Speck(api_key=None)
 
 kwargs = {
     "model": "gpt-3.5-turbo",
