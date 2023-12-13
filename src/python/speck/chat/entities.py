@@ -53,18 +53,20 @@ class Prompt(str):
         current_message = []
 
         def add_message():
-            nonlocal current_message, min_spaces
+            nonlocal current_message, current_min_spaces
             if current_message:
                 messages.append(
                     Message(
                         role=current_section,
-                        content="\n".join([m[min_spaces:] for m in current_message]),
+                        content="\n".join(
+                            [m[current_min_spaces:] for m in current_message]
+                        ),
                     )
                 )
                 current_message = []
-                min_spaces = 0
+                current_min_spaces = 0
 
-        for line in lines.splitlines():
+        for line in lines.split("\n"):
             line = line.rstrip("\r")
             if line.startswith("<"):
                 line = line.strip()
@@ -128,6 +130,29 @@ class Prompt(str):
                     lines.append(line)
 
             return prompts
+
+    def _file(self):
+        file = []
+        for message in self.messages:
+            file.append(f"<{message.role.lower()}>")
+            for line in message.content.split("\n"):
+                file.append(" " * 4 + line)
+        return "\n".join(file)
+
+    @classmethod
+    def write(cls, prompt: Self | dict[str, Self], path: str):
+        with open(path, "w") as f:
+            if isinstance(prompt, dict):
+                content = ""
+                for name, prompt in prompt.items():
+                    content += f"<prompt {name}>\n"
+                    content += "\n".join(
+                        [" " * 4 + line for line in prompt._file().split("\n")]
+                    )
+                    content += "\n</prompt>\n\n"
+                f.write(content.strip())
+            else:
+                f.write(prompt._file())
 
     def __new__(
         cls, messages: str | Message | list[Message] | list[dict[str, str]], **kwargs
