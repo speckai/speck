@@ -13,7 +13,7 @@
     </a>
 </p>
 
-🎊 _We recently launched our python package: `pip install speck`_
+🎊 _We recently updated our python package: `pip install --upgrade speck`_
 
 ---
 
