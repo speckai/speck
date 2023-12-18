@@ -63,7 +63,6 @@ class OpenAIConnector(IConnector, IChatClient):
                 messages=input,
                 **filter_kwargs(self.client.chat.completions.create, all_kwargs),
             )
-            print(all_kwargs)
 
             return Stream(
                 iterator=output_stream,

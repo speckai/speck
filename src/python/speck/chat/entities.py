@@ -336,7 +336,6 @@ class Stream:
             self._has_logged = True
 
             kwargs = self._kwargs
-            print(kwargs)
             kwargs["prompt"] = self._kwargs.get("prompt", [])
             kwargs["temperature"] = self._kwargs.get("temperature", "N/A")
             kwargs["model"] = self._kwargs.get("model", "N/A")

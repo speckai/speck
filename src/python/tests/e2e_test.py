@@ -59,4 +59,3 @@ for idx, client in enumerate(clients):
     else:
         for chunk in response:
             print(chunk)
-            # response.close()
