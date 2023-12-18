@@ -7,7 +7,6 @@ class ChatLogger:
     @staticmethod
     def log(prompt: Any, model: str, response: Any, **kwargs):
         if kwargs.get("config", {}).get("_log", True):
-            print(model)
             universal_format_log(
                 prompt=prompt,
                 model=model,
