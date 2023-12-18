@@ -16,6 +16,9 @@ class IConnector(ABC):
     def _get_log_kwargs(self, prompt: Prompt, response: Response, **kwargs):
         return {
             "provider": self.provider,
+            "model": kwargs.get("model"),
+            "temperature": kwargs.get("temperature"),
+            "stream": kwargs.get("stream", False),
             "prompt": prompt,
             "config": kwargs,
             "response": response,

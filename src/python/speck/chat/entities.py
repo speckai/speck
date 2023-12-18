@@ -2,7 +2,6 @@ from abc import ABC, abstractmethod
 from typing import Any, Callable, Iterator, List, Literal, Optional, Self
 
 from openai._types import NotGiven
-
 # from dataclasses import dataclass
 from pydantic import BaseModel
 
@@ -334,11 +333,12 @@ class Stream:
 
     def _log(self):
         if not self._has_logged:
-            print("Stream logged!")
             self._has_logged = True
 
             kwargs = self._kwargs
+            print(kwargs)
             kwargs["prompt"] = self._kwargs.get("prompt", [])
+            kwargs["temperature"] = self._kwargs.get("temperature", "N/A")
             kwargs["model"] = self._kwargs.get("model", "N/A")
             kwargs["response"] = Response(content=self.message, raw={}, closed=True)
             ChatLogger.log(**kwargs)

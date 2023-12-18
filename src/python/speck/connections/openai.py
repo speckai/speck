@@ -13,16 +13,8 @@ from openai import OpenAI
 from openai._types import NotGiven
 from openai.types.chat import ChatCompletion
 
-from ..chat.entities import (
-    NOT_GIVEN,
-    ChatConfig,
-    IChatClient,
-    MessageChunk,
-    OpenAIChatConfig,
-    Prompt,
-    Response,
-    Stream,
-)
+from ..chat.entities import (NOT_GIVEN, ChatConfig, IChatClient, MessageChunk,
+                             OpenAIChatConfig, Prompt, Response, Stream)
 from ..util import filter_kwargs
 from .connector import IConnector
 from .providers import Providers
@@ -71,6 +63,7 @@ class OpenAIConnector(IConnector, IChatClient):
                 messages=input,
                 **filter_kwargs(self.client.chat.completions.create, all_kwargs),
             )
+            print(all_kwargs)
 
             return Stream(
                 iterator=output_stream,

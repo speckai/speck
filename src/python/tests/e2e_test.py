@@ -5,9 +5,8 @@ import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from dotenv import load_dotenv
-from speck.chat.client import Providers
 
-from speck import ChatClient, Message, Prompt, Stream
+from speck import ChatClient, ChatConfig, Message, Prompt, Response, Stream
 
 load_dotenv()
 
@@ -30,12 +29,13 @@ print("Replicate: ", REPLICATE_API_TOKEN)
 
 clients = [
     ChatClient.from_openai(api_key=OPENAI_API_KEY),
+    ChatClient.from_openai(api_key=OPENAI_API_KEY),
     # ChatClient.from_replicate(),
 ]
 
-for client in clients:
-    print(client)
-    response: Stream = client.chat(
+for idx, client in enumerate(clients):
+    print(idx)
+    response: Stream | Response = client.chat(
         Prompt(
             messages=[
                 Message(role="system", content="You respond with 1 word answers."),
@@ -45,14 +45,18 @@ for client in clients:
                 ),
             ],
         ),
-        model="gpt-3.5-turbo",
-        temperature=0.0,
-        stream=True,
-        _log=False,
+        ChatConfig(
+            model="gpt-3.5-turbo",
+            temperature=0.0,
+            stream=idx==1,
+            _log=True,
+        ),
     )
-    # print(response)
-    print(next(response))
-    response.close()
-    for r in response:
-        print(r)
-    print("=" * 10 + "\n" * 2)
+
+    if idx == 0:
+        print(response)
+        print(type(response))
+    else:
+        for chunk in response:
+            print(chunk)
+            # response.close()
