@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Any, Callable, Iterator, List, Literal, Optional, Self
 
 from openai._types import NotGiven
+
 # from dataclasses import dataclass
 from pydantic import BaseModel
 
@@ -325,6 +326,7 @@ class Stream:
         processor: Callable[[Any], MessageChunk],
     ):
         self.message: str = ""
+        self.tokens: int = 0
         self._iterator = iterator
         self._kwargs = kwargs
         self._processor = processor
@@ -339,7 +341,10 @@ class Stream:
             kwargs["prompt"] = self._kwargs.get("prompt", [])
             kwargs["temperature"] = self._kwargs.get("temperature", "N/A")
             kwargs["model"] = self._kwargs.get("model", "N/A")
-            kwargs["response"] = Response(content=self.message, raw={}, closed=True)
+            kwargs["response"] = Response(
+                content=self.message, raw={}, closed=True, completion_tokens=self.tokens
+            )
+            # Todo: add prompt_tokens using tiktoken
             ChatLogger.log(**kwargs)
 
     def _process(self, item) -> MessageChunk:
@@ -350,9 +355,12 @@ class Stream:
             if self._closed:
                 raise StopIteration
 
-            item: MessageChunk = self._process(next(self._iterator))
+            next_item = next(self._iterator)
+            item: MessageChunk = self._process(next_item)
             if item.content:
                 self.message += item.content
+
+            self.tokens += 1
             return item
         except StopIteration:
             self._log()
