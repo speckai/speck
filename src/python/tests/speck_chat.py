@@ -4,12 +4,16 @@ import sys
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from dotenv import load_dotenv
-from speck.chat.client import Providers
+import os
+
+with open(".env") as f:
+    lines = f.readlines()
+    for line in lines:
+        key, value = line.split("=")
+        os.environ[key] = value
 
 from speck import ChatClient, Message, Prompt, Stream
-
-load_dotenv()
+from speck.chat.client import Providers
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 REPLICATE_API_TOKEN = os.getenv("REPLICATE_API_TOKEN")
@@ -47,12 +51,12 @@ for client in clients:
         ),
         model="gpt-3.5-turbo",
         temperature=0.0,
-        stream=True,
-        _log=False,
+        stream=False,
+        _log=True,
     )
-    # print(response)
-    print(next(response))
-    response.close()
-    for r in response:
-        print(r)
+    print(response)
+    # print(next(response))
+    # response.close()
+    # for r in response:
+    #     print(r)
     print("=" * 10 + "\n" * 2)

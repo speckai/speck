@@ -24,7 +24,7 @@ class IConnector(ABC):
             "response": response,
         }
 
-    def log(self, prompt: Prompt, model: str, response: Response, **kwargs):
+    def log(self, *, prompt: Prompt, response: Response, **kwargs):
         ChatLogger.log(**self._get_log_kwargs(prompt, response, **kwargs))
 
     def __str__(self):
