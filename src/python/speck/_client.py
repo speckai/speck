@@ -1,4 +1,5 @@
 from .chat.entities import ChatConfig, Prompt, Response
+from .connections.anthropic import AnthropicConnector
 from .connections.openai import OpenAIConnector
 from .connections.openai_azure import AzureOpenAIConnector
 from .connections.replicate import ReplicateConnector
@@ -56,7 +57,12 @@ class Chat(SyncResource):
                 api_key=self.client.api_keys["replicate"].strip()
             )
             return connector.chat(prompt, config, **config_kwargs)
-        pass
+        if config.provider == "anthropic":
+            connector = AnthropicConnector(api_key=self.client.api_keys["anthropic"].strip())
+            return connector.chat(prompt, config, **config_kwargs)
+        raise ValueError(
+            "Provider not found"
+        )
 
     def log(self, messages: Prompt, config: ChatConfig, response: Response):
         config.log_chat(messages, response)

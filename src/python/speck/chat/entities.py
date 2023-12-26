@@ -355,11 +355,13 @@ class Stream:
             if self._closed:
                 raise StopIteration
 
+            # next_item = None
+            # while next_item is None:
             next_item = next(self._iterator)
+
             item: MessageChunk = self._process(next_item)
             if item.content:
                 self.message += item.content
-
             self.tokens += 1
             return item
         except StopIteration:
@@ -407,6 +409,9 @@ class ChatConfig:
         self.frequency_penalty = frequency_penalty
         self.presence_penalty = presence_penalty
         self._kwargs = config_kwargs
+
+    def get(self, key: str, default: Any = None) -> Any:
+        return getattr(self, key, default)
 
     def convert(self, provider: str = "speck") -> Self:
         """
