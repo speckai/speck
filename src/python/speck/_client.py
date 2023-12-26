@@ -1,5 +1,6 @@
 from .chat.entities import ChatConfig, Prompt, Response
 from .connections.openai import OpenAIConnector
+from .connections.openai_azure import AzureOpenAIConnector
 from .connections.replicate import ReplicateConnector
 
 
@@ -42,10 +43,18 @@ class Chat(SyncResource):
                 )
 
         if config.provider == "openai":
-            connector = OpenAIConnector(self.client.api_keys["openai"])
+            connector = OpenAIConnector(api_key=self.client.api_keys["openai"].strip())
+            return connector.chat(prompt, config, **config_kwargs)
+        if config.provider == "azure-openai":
+            connector = AzureOpenAIConnector(
+                api_key=self.client.api_keys["azure-openai"].strip(),
+                **self.client.azure_openai_config
+            )
             return connector.chat(prompt, config, **config_kwargs)
         if config.provider == "replicate":
-            connector = ReplicateConnector(self.client.api_keys["replicate"])
+            connector = ReplicateConnector(
+                api_key=self.client.api_keys["replicate"].strip()
+            )
             return connector.chat(prompt, config, **config_kwargs)
         pass
 
@@ -68,10 +77,17 @@ class Speck(BaseClient):
     def __init__(self, api_key: str | None = None, api_keys: dict[str, str] = {}):
         self.api_key = api_key
         self.api_keys = api_keys
+        self.azure_openai_config = {}
         self.chat = Chat(self)
 
     def add_api_key(self, provider: str, api_key: str):
         self.api_keys[provider] = api_key
+
+    def add_azure_openai_config(self, azure_endpoint: str, api_version: str):
+        self.azure_openai_config = {
+            "azure_endpoint": azure_endpoint,
+            "api_version": api_version,
+        }
 
 
 class AsyncSpeck(BaseClient):

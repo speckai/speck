@@ -13,8 +13,16 @@ from openai import OpenAI
 from openai._types import NotGiven
 from openai.types.chat import ChatCompletion
 
-from ..chat.entities import (NOT_GIVEN, ChatConfig, IChatClient, MessageChunk,
-                             OpenAIChatConfig, Prompt, Response, Stream)
+from ..chat.entities import (
+    NOT_GIVEN,
+    ChatConfig,
+    IChatClient,
+    MessageChunk,
+    OpenAIChatConfig,
+    Prompt,
+    Response,
+    Stream,
+)
 from ..util import filter_kwargs
 from .connector import IConnector
 from .providers import Providers
@@ -37,11 +45,11 @@ class OpenAIResponse(Response):
 
 
 class OpenAIConnector(IConnector, IChatClient):
-    def __init__(self, api_key: str):
+    def __init__(self, api_key: str = None):
         super().__init__(provider=Providers.OpenAI)
-        self.api_key = api_key
-        self.client = OpenAI(api_key=self.api_key)
-        print(api_key)
+        if api_key is not None:
+            self.api_key = api_key
+            self.client = OpenAI(api_key=self.api_key)
 
     def _convert_messages_to_prompt(self, messages: Prompt) -> list[dict[str, str]]:
         return [{"role": msg.role, "content": msg.content} for msg in messages.messages]
