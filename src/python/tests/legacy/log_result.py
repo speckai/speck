@@ -1,6 +1,6 @@
 import os
 
-with open(".env") as f:
+with open("../.env") as f:
     lines = f.readlines()
     for line in lines:
         key, value = line.split("=")

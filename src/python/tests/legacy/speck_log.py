@@ -1,8 +1,8 @@
-from openai import ChatCompletion, OpenAI
-
 # Import 2 levels up for speck
 import os
 import sys
+
+from openai import ChatCompletion, OpenAI
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from speck import chat, logger

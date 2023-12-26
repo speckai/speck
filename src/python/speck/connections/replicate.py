@@ -39,68 +39,88 @@ class ReplicateConnector(IConnector, IChatClient):
         message_suffix: str = "<|im_end|>\n",
         messages_end: str = "<|im_start|>assistant\n",
     ):
+        # Todo: support custom replicate model mappings
+        # By default, built for meta/llama-2-70b
         super().__init__(provider=Providers.Replicate)
         self.api_key = api_key
         self.message_prefix = message_prefix
         self.message_suffix = message_suffix
         self.messages_end = messages_end
 
+    def _convert_messages_to_prompt(self, messages: Prompt) -> list[dict[str, str]]:
+        # Return tuple of system_prompt, prompt
+        system_prompt = next(
+            msg.content for msg in messages.messages if msg.role == "system"
+        )
+        prompt = "".join(
+            msg.content for msg in messages.messages if msg.role != "system"
+        )
+        return system_prompt, prompt
+
     def chat(
         self,
         prompt: Prompt,
-        model: str,
-        stream: bool = False,
-        _log: bool = True,
-        temperature: Optional[float] | NotGiven = NOT_GIVEN,
-        max_tokens: Optional[int] | NotGiven = 10,
-        top_p: Optional[float] | NotGiven = NOT_GIVEN,
-        presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
-        top_k: Optional[int] | NotGiven = NOT_GIVEN,
-        test: bool = False,
+        config: ChatConfig = NOT_GIVEN,
+        # model: str,
+        # stream: bool = False,
+        # _log: bool = True,
+        # temperature: Optional[float] | NotGiven = NOT_GIVEN,
+        # max_tokens: Optional[int] | NotGiven = 10,
+        # top_p: Optional[float] | NotGiven = NOT_GIVEN,
+        # presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
+        # top_k: Optional[int] | NotGiven = NOT_GIVEN,
+        # test: bool = False,
         **config_kwargs
     ) -> Response | Stream:
-        all_kwargs = {
-            **config_kwargs,
-            "temperature": max(temperature, 0.01) if temperature is not None else None,
-            "max_new_tokens": max_tokens,
-            "top_p": top_p,
-            "repetition_penalty": max(presence_penalty, 0.01)
-            if presence_penalty
-            else None,
-            "top_k": top_k,
-            "test": test,
+        # all_kwargs = {
+        #     **config_kwargs,
+        #     "temperature": max(temperature, 0.01) if temperature is not None else None,
+        #     "max_new_tokens": max_tokens,
+        #     "top_p": top_p,
+        #     "repetition_penalty": max(presence_penalty, 0.01)
+        #     if presence_penalty
+        #     else None,
+        #     "top_k": top_k,
+        #     "test": test,
+        # }
+        mapped_args = {
+            "repetition_penalty": "presence_penalty",
         }
-        # Remove all None values
-        all_kwargs = {k: v for k, v in all_kwargs.items() if v is not None}
+        all_kwargs = {
+            mapped_args.get(k, k): v for k, v in vars(config).items() if v is not None
+        }
+        if all_kwargs.get("temperature") < 0.01:
+            all_kwargs["temperature"] = 0.01
 
-        input = (
-            "".join(
-                self.message_prefix.format(role=msg.role)
-                + msg.content
-                + self.message_suffix.format(role=msg.role)
-                for msg in prompt.messages
-            )
-            + self.messages_end
-        )
-        print(input)
+        # input = (
+        #     "".join(
+        #         self.message_prefix.format(role=msg.role)
+        #         + msg.content
+        #         + self.message_suffix.format(role=msg.role)
+        #         for msg in prompt.messages
+        #     )
+        #     + self.messages_end
+        # )
+        system_prompt, user_prompt = self._convert_messages_to_prompt(prompt)
+        config_kwargs["system_prompt"] = system_prompt
+
         output = replicate.run(
-            "01-ai/yi-34b-chat:914692bbe8a8e2b91a4e44203e70d170c9c5ccc1359b283c84b0ec8d47819a46",
-            input={"prompt": input, **all_kwargs},
+            config.model,
+            input={"prompt": user_prompt, **all_kwargs},
         )
 
-        if stream:
+        if config.stream:
             return Stream(
                 iterator=output,
-                kwargs=self._get_log_kwargs(prompt, None, _log=_log, **all_kwargs),
+                kwargs=self._get_log_kwargs(prompt, None, **all_kwargs),
                 processor=_process_chunk,
             )
         else:
             content = "".join(item for item in output)
 
-            if _log:
+            if config._log:
                 self.log(
                     prompt=prompt,
-                    model=model,
                     response=Response(content=content),
                     **all_kwargs,
                 )

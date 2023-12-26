@@ -385,6 +385,8 @@ class ChatConfig:
     # Todo: Create conversions to other formats
     def __init__(
         self,
+        *,
+        provider: str = None,
         model: OpenAIModel,
         stream: bool = False,
         _log: bool = True,
@@ -395,6 +397,7 @@ class ChatConfig:
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
         **config_kwargs,
     ):
+        self.provider = provider
         self.model = model
         self.stream = stream
         self._log = _log
