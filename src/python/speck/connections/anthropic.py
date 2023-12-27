@@ -81,7 +81,11 @@ class AnthropicConnector(IConnector, IChatClient):
         for msg in messages.messages:
             if msg.role == "system":
                 continue
-            res += f"{'Human' if msg.role == "user" else 'Assistant'}: " + msg.content + "\n\n"
+            res += (
+                f"{'Human' if msg.role == 'user' else 'Assistant'}: "
+                + msg.content
+                + "\n\n"
+            )
         res += "Assistant:"
         return res
 
