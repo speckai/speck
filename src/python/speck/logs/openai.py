@@ -1,11 +1,11 @@
-from typing import Any
+from typing import Any, Union
 
 import requests
 from openai import ChatCompletion
 
-from .. import get_dict
 from ..models.chat_format import Message
 from ..models.config import ENDPOINT
+from ..util import get_dict
 from .metadata import generate_metadata_dict
 
 
@@ -36,7 +36,7 @@ class openai:
     @staticmethod
     def log_verbose(
         model: str,
-        messages: list[Message] | list[dict[str, str]],
+        messages: Union[list[Message], list[dict[str, str]]],
         completion: dict[str, str],
         session_key: str = None,
         **kwargs,

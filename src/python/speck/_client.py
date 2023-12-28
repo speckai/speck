@@ -1,3 +1,5 @@
+from typing import Union
+
 from .chat.entities import ChatConfig, Prompt, Response
 from .connections.anthropic import AnthropicConnector
 from .connections.openai import OpenAIConnector
@@ -58,11 +60,11 @@ class Chat(SyncResource):
             )
             return connector.chat(prompt, config, **config_kwargs)
         if config.provider == "anthropic":
-            connector = AnthropicConnector(api_key=self.client.api_keys["anthropic"].strip())
+            connector = AnthropicConnector(
+                api_key=self.client.api_keys["anthropic"].strip()
+            )
             return connector.chat(prompt, config, **config_kwargs)
-        raise ValueError(
-            "Provider not found"
-        )
+        raise ValueError("Provider not found")
 
     def log(self, messages: Prompt, config: ChatConfig, response: Response):
         config.log_chat(messages, response)
@@ -77,10 +79,10 @@ class AsyncChat(AsyncResource):
 
 
 class Speck(BaseClient):
-    api_key: str | None = None
+    api_key: Union[str, None] = None
     api_keys: dict[str, str] = {}
 
-    def __init__(self, api_key: str | None = None, api_keys: dict[str, str] = {}):
+    def __init__(self, api_key: Union[str, None] = None, api_keys: dict[str, str] = {}):
         self.api_key = api_key
         self.api_keys = api_keys
         self.azure_openai_config = {}
@@ -97,9 +99,9 @@ class Speck(BaseClient):
 
 
 class AsyncSpeck(BaseClient):
-    api_key: str | None = None
+    api_key: Union[str, None] = None
 
-    def __init__(self, api_key: str | None = None):
+    def __init__(self, api_key: Union[str, None] = None):
         self.api_key = api_key
         self.chat = AsyncChat(self)
 

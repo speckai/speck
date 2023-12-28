@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, Callable, Iterator, List, Literal, Optional, Self
+from typing import Any, Callable, Iterator, List, Literal, Optional, Union
 
 from openai._types import NotGiven
 
@@ -25,12 +25,12 @@ class SafeDict(dict):
 
 class Prompt(str):
     messages: list[Message]
-    variables: dict[str, str] | None = None
+    variables: Union[dict[str, str], None] = None
 
     def __init__(
         self,
-        messages: str | Message | list[Message] | list[dict[str, str]],
-        variables: dict[str, str] | None = None,
+        messages: Union[str, Message, list[Message], list[dict[str, str]]],
+        variables: Union[dict[str, str], None] = None,
         **kwargs,
     ):
         if isinstance(messages, str):
@@ -55,7 +55,7 @@ class Prompt(str):
         super().__init__()
 
     @classmethod
-    def _read(cls, lines: str) -> Self:
+    def _read(cls, lines: str) -> "Prompt":
         # Todo: add config parsing
         config = {}
         messages = []
@@ -97,7 +97,7 @@ class Prompt(str):
         return cls(messages=messages)
 
     @classmethod
-    def read(cls, path: str, name: str | None = None) -> Self:
+    def read(cls, path: str, name: Union[str, None] = None) -> "Prompt":
         with open(path, "r") as f:
             if name is not None:
                 prompts = cls.read_all(path)
@@ -106,7 +106,7 @@ class Prompt(str):
                 return cls._read(f.read())
 
     @classmethod
-    def read_all(cls, path: str) -> dict[str, Self]:
+    def read_all(cls, path: str) -> dict[str, "Prompt"]:
         with open(path, "r") as f:
             prompts = {}
             lines = []
@@ -152,7 +152,7 @@ class Prompt(str):
         return "\n".join(file)
 
     @classmethod
-    def write(cls, prompt: Self | dict[str, Self], path: str):
+    def write(cls, prompt: Union["Prompt", dict[str, "Prompt"]], path: str):
         with open(path, "w") as f:
             if isinstance(prompt, dict):
                 content = ""
@@ -167,7 +167,9 @@ class Prompt(str):
                 f.write(prompt._file())
 
     def __new__(
-        cls, messages: str | Message | list[Message] | list[dict[str, str]], **kwargs
+        cls,
+        messages: Union[str, Message, list[Message], list[dict[str, str]]],
+        **kwargs,
     ):
         # Todo: Handle string, Message, and list[Message]
         instance = super(Prompt, cls).__new__(cls, str(messages))
@@ -283,17 +285,17 @@ class Prompt(str):
 
 class Response(BaseModel):
     content: str
-    prompt_tokens: int | None = None
-    completion_tokens: int | None = None
-    raw: dict | None = None
+    prompt_tokens: Union[int, None] = None
+    completion_tokens: Union[int, None] = None
+    raw: Union[dict, None] = None
 
     def __init__(
         self,
         content: str,
         closed: bool = False,
-        prompt_tokens: int | None = None,
-        completion_tokens: int | None = None,
-        raw: dict | None = None,
+        prompt_tokens: Union[int, None] = None,
+        completion_tokens: Union[int, None] = None,
+        raw: Union[dict, None] = None,
         **kwargs,
     ):
         super().__init__(
@@ -310,7 +312,7 @@ class Response(BaseModel):
 
 
 class MessageChunk(BaseModel):
-    content: str | None
+    content: Union[str, None]
 
     def encode(self, encoding: str = "utf-8"):
         content = self.content or ""
@@ -392,11 +394,11 @@ class ChatConfig:
         model: OpenAIModel,
         stream: bool = False,
         _log: bool = True,
-        temperature: Optional[float] | NotGiven = NOT_GIVEN,
-        max_tokens: Optional[int] | NotGiven = NOT_GIVEN,
-        top_p: Optional[float] | NotGiven = NOT_GIVEN,
-        frequency_penalty: Optional[float] | NotGiven = NOT_GIVEN,
-        presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
+        temperature: Union[Optional[float], NotGiven] = NOT_GIVEN,
+        max_tokens: Union[Optional[int], NotGiven] = NOT_GIVEN,
+        top_p: Union[Optional[float], NotGiven] = NOT_GIVEN,
+        frequency_penalty: Union[Optional[float], NotGiven] = NOT_GIVEN,
+        presence_penalty: Union[Optional[float], NotGiven] = NOT_GIVEN,
         **config_kwargs,
     ):
         self.provider = provider
@@ -413,7 +415,7 @@ class ChatConfig:
     def get(self, key: str, default: Any = None) -> Any:
         return getattr(self, key, default)
 
-    def convert(self, provider: str = "speck") -> Self:
+    def convert(self, provider: str = "speck") -> "ChatConfig":
         """
         Convert to another config format
         """
@@ -449,11 +451,11 @@ class OpenAIChatConfig(ChatConfig):
         model: OpenAIModel,
         stream: bool = False,
         _log: bool = True,
-        temperature: Optional[float] | NotGiven = NOT_GIVEN,
-        max_tokens: Optional[int] | NotGiven = NOT_GIVEN,
-        top_p: Optional[float] | NotGiven = NOT_GIVEN,
-        frequency_penalty: Optional[float] | NotGiven = NOT_GIVEN,
-        presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
+        temperature: Union[Optional[float], NotGiven] = NOT_GIVEN,
+        max_tokens: Union[Optional[int], NotGiven] = NOT_GIVEN,
+        top_p: Union[Optional[float], NotGiven] = NOT_GIVEN,
+        frequency_penalty: Union[Optional[float], NotGiven] = NOT_GIVEN,
+        presence_penalty: Union[Optional[float], NotGiven] = NOT_GIVEN,
         **config_kwargs,
     ):
         self.model = model
@@ -490,7 +492,7 @@ class IChatClient(ABC):
     def chat(
         self,
         prompt: Prompt,
-        config: ChatConfig | NotGiven = NOT_GIVEN,
+        config: Union[ChatConfig, NotGiven] = NOT_GIVEN,
         **config_kwargs,
-    ) -> Response | Stream:
+    ) -> Union[Response, Stream]:
         pass

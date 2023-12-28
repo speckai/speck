@@ -5,7 +5,7 @@ Features:
 - Chat
 """
 import json
-from typing import Literal, Optional
+from typing import Literal, Optional, Union
 
 import requests
 from openai import OpenAI
@@ -91,7 +91,7 @@ class AnthropicConnector(IConnector, IChatClient):
 
     def chat(
         self, prompt: Prompt, config: ChatConfig = NOT_GIVEN, **config_kwargs
-    ) -> AnthropicResponse | Stream:
+    ) -> Union[AnthropicResponse, Stream]:
         if config is NOT_GIVEN:
             config = ChatConfig(**config_kwargs)
             # Todo: convert to default config based on class param

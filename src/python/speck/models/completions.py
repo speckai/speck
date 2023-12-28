@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+from typing import Union
 
 import httpx
 import requests
@@ -22,7 +23,7 @@ class chat:
     @staticmethod
     def create(
         model: str,
-        messages: list[Message] | list[dict[str, str]],
+        messages: Union[list[Message], list[dict[str, str]]],
         session_key: str = None,
         local_retry: bool = True,
         **kwargs,
@@ -58,7 +59,7 @@ class chat:
     @staticmethod
     async def create_async(
         model: str,
-        messages: list[Message] | list[dict[str, str]],
+        messages: Union[list[Message], list[dict[str, str]]],
         session_key: str,
         **kwargs,
     ):
@@ -70,7 +71,7 @@ class chat:
     @staticmethod
     def create_stream(
         model: str,
-        messages: list[Message] | list[dict[str, str]],
+        messages: Union[list[Message], list[dict[str, str]]],
         process_chunk_lambda=None,
         session_key: str = None,
         log: bool = False,

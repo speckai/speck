@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import Union
 
 from ..chat.entities import IChatClient, Prompt, Response, Stream
 from ..connections.custom import CustomProviderConnector
@@ -47,9 +48,11 @@ class ChatClient(IChatClient):
         return OpenAIConnector(api_key=api_key)
 
     @classmethod
-    def from_replicate(cls, api_key: str | None = None) -> ReplicateConnector:
+    def from_replicate(cls, api_key: Union[str, None] = None) -> ReplicateConnector:
         """Reads api_key from environment variable if not provided"""
         return ReplicateConnector(api_key=api_key)
 
-    def chat(self, messages: Prompt, model: str, **config_kwargs) -> Response | Stream:
+    def chat(
+        self, messages: Prompt, model: str, **config_kwargs
+    ) -> Union[Response, Stream]:
         return self.connector.chat(messages=messages, model=model, **config_kwargs)

@@ -4,7 +4,7 @@ URL: https://replicate.com/
 Features:
 - Chat
 """
-from typing import Optional
+from typing import Optional, Union
 
 import replicate
 from openai._types import NotGiven
@@ -34,7 +34,7 @@ class ReplicateConnector(IConnector, IChatClient):
 
     def __init__(
         self,
-        api_key: str | None = None,
+        api_key: Union[str, None] = None,
         message_prefix: str = "<|im_start|>{role}\n",
         message_suffix: str = "<|im_end|>\n",
         messages_end: str = "<|im_start|>assistant\n",
@@ -58,20 +58,8 @@ class ReplicateConnector(IConnector, IChatClient):
         return system_prompt, prompt
 
     def chat(
-        self,
-        prompt: Prompt,
-        config: ChatConfig = NOT_GIVEN,
-        # model: str,
-        # stream: bool = False,
-        # _log: bool = True,
-        # temperature: Optional[float] | NotGiven = NOT_GIVEN,
-        # max_tokens: Optional[int] | NotGiven = 10,
-        # top_p: Optional[float] | NotGiven = NOT_GIVEN,
-        # presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
-        # top_k: Optional[int] | NotGiven = NOT_GIVEN,
-        # test: bool = False,
-        **config_kwargs
-    ) -> Response | Stream:
+        self, prompt: Prompt, config: ChatConfig = NOT_GIVEN, **config_kwargs
+    ) -> Union[Response, Stream]:
         # all_kwargs = {
         #     **config_kwargs,
         #     "temperature": max(temperature, 0.01) if temperature is not None else None,

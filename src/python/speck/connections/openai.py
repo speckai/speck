@@ -7,7 +7,7 @@ Features:
 - Text-to-Speech
 - Speech-to-Text
 """
-from typing import Literal, Optional
+from typing import Literal, Optional, Union
 
 from openai import OpenAI
 from openai._types import NotGiven
@@ -56,7 +56,7 @@ class OpenAIConnector(IConnector, IChatClient):
 
     def chat(
         self, prompt: Prompt, config: ChatConfig = NOT_GIVEN, **config_kwargs
-    ) -> OpenAIResponse | Stream:
+    ) -> Union[OpenAIResponse, Stream]:
         if config is NOT_GIVEN:
             config = ChatConfig(**config_kwargs)
             # Todo: convert to default config based on class param
