@@ -23,7 +23,7 @@ from ..chat.entities import (
     Response,
     Stream,
 )
-from ..util import filter_kwargs
+from ..util import filter_kwargs, get_dict
 from .connector import IConnector
 from .providers import Providers
 
@@ -40,7 +40,7 @@ class OpenAIResponse(Response):
             content=content,
             prompt_tokens=chat_completion.usage.prompt_tokens,
             completion_tokens=chat_completion.usage.completion_tokens,
-            raw=chat_completion.model_dump(),
+            raw=get_dict(chat_completion),
         )
 
 

@@ -3,6 +3,7 @@ from typing import Any
 import requests
 from openai import ChatCompletion
 
+from .. import get_dict
 from ..models.chat_format import Message
 from ..models.config import ENDPOINT
 from .metadata import generate_metadata_dict
@@ -23,8 +24,8 @@ class openai:
                 "messages": messages,
                 **kwargs,
             },
-            "output": response.model_dump(),
-            "message": response.model_dump()["choices"][0]["message"]["content"],
+            "output": get_dict(response),
+            "message": get_dict(response)["choices"][0]["message"]["content"],
             "metadata": generate_metadata_dict(),
         }
         request: requests.Response = requests.post(

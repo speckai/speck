@@ -2,6 +2,7 @@ from typing import Any
 
 import requests
 
+from .. import get_dict
 from ..models import ENDPOINT
 from .app import app
 from .metadata import generate_metadata_dict
@@ -25,7 +26,7 @@ def universal_format_log(
             **prompt.to_dict(),
             **kwargs,
         },
-        "output": response.model_dump(),
+        "output": get_dict(response),
         "metadata": generate_metadata_dict(),
     }
 
