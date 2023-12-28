@@ -34,7 +34,7 @@ class Chat(SyncResource):
             config = ChatConfig(**config_kwargs)
             # Todo: convert to default config based on class param
 
-        if config.provider == None:
+        if config.provider is None:
             # Try to extract provider by getting string before : in model
             if ":" in config.model:
                 provider_str, model_str = config.model.split(":", 1)

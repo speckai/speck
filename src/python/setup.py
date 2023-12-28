@@ -17,6 +17,7 @@ install_requires = [
     "openai",
     "replicate",
     "requests",
+    "pydantic",
 ]
 
 
@@ -46,6 +47,8 @@ setup(
     author_email="luke@speck.chat",
     classifiers=[
         "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.10",
     ],
     include_package_data=True,
     install_requires=install_requires,
