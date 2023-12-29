@@ -1,6 +1,5 @@
 import requests
 
-from ..models.config import ENDPOINT
 from .metadata import generate_metadata_dict
 
 

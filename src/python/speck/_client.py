@@ -79,12 +79,19 @@ class AsyncChat(AsyncResource):
 
 
 class Speck(BaseClient):
-    api_key: Union[str, None] = None
-    api_keys: dict[str, str] = {}
+    api_key: Union[str, None]
+    api_keys: dict[str, str]
+    endpoint: str
 
-    def __init__(self, api_key: Union[str, None] = None, api_keys: dict[str, str] = {}):
+    def __init__(
+        self,
+        api_key: Union[str, None] = None,
+        api_keys: dict[str, str] = {},
+        endpoint: str = "https://api.speck.chat",
+    ):
         self.api_key = api_key
         self.api_keys = api_keys
+        self.endpoint = endpoint
         self.azure_openai_config = {}
         self.chat = Chat(self)
 

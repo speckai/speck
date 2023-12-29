@@ -4,7 +4,6 @@ import requests
 from openai import ChatCompletion
 
 from ..models.chat_format import Message
-from ..models.config import ENDPOINT
 from ..util import get_dict
 from .metadata import generate_metadata_dict
 
