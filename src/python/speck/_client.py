@@ -5,6 +5,7 @@ from .connections.anthropic import AnthropicConnector
 from .connections.openai import OpenAIConnector
 from .connections.openai_azure import AzureOpenAIConnector
 from .connections.replicate import ReplicateConnector
+from .logs.app import app
 
 
 # Todo: Add BaseClient
@@ -23,6 +24,15 @@ class AsyncResource(Resource):
 
 class SyncResource(Resource):
     pass
+
+
+class Logger(SyncResource):  # App logger
+    def __init__(self, client: "Speck"):
+        self.client = client
+
+    def log(self, *args, **kwargs):
+        kwargs["endpoint"] = self.client.endpoint
+        app.log(*args, **kwargs)
 
 
 class Chat(SyncResource):
@@ -99,8 +109,11 @@ class Speck(BaseClient):
         self.api_key = api_key
         self.api_keys = api_keys
         self.endpoint = endpoint
+
         self.azure_openai_config = {}
+
         self.chat = Chat(self)
+        self.logger = Logger(self)
 
     def add_api_key(self, provider: str, api_key: str):
         self.api_keys[provider] = api_key
