@@ -5,8 +5,7 @@ from openai import OpenAI as _OpenAI
 from openai import Stream as _Stream
 
 from .. import ChatLogger
-from ..chat.entities import (ChatConfig, OpenAIChatConfig, Prompt, Response,
-                             Stream)
+from ..chat.entities import ChatConfig, OpenAIChatConfig, Prompt, Response, Stream
 from ..util._wrapper import wrap_method
 
 logger = logging.getLogger(__name__)
@@ -62,6 +61,7 @@ class OpenAIStream:
 
             print("Logging chat!", self.message)
             self.config.log_chat(
+                endpoint="https://api.speck.chat",
                 prompt=self.prompt,
                 response=Response(content=self.message, raw={}, closed=True),
             )
@@ -136,6 +136,7 @@ def chat_wrapper(original_method, *args, **kwargs):
         result = original_method(*args, **kwargs)
 
         config.log_chat(
+            endpoint="https://api.speck.chat",
             prompt=prompt,
             response=result,
             provider="openai",

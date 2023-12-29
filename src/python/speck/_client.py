@@ -5,6 +5,7 @@ from .connections.anthropic import AnthropicConnector
 from .connections.openai import OpenAIConnector
 from .connections.openai_azure import AzureOpenAIConnector
 from .connections.replicate import ReplicateConnector
+from .logs.app import app
 
 
 # Todo: Add BaseClient
@@ -23,6 +24,15 @@ class AsyncResource(Resource):
 
 class SyncResource(Resource):
     pass
+
+
+class Logger(SyncResource):  # App logger
+    def __init__(self, client: "Speck"):
+        self.client = client
+
+    def log(self, *args, **kwargs):
+        kwargs["endpoint"] = self.client.endpoint
+        app.log(*args, **kwargs)
 
 
 class Chat(SyncResource):
@@ -46,28 +56,33 @@ class Chat(SyncResource):
                 )
 
         if config.provider == "openai":
-            connector = OpenAIConnector(api_key=self.client.api_keys["openai"].strip())
+            connector = OpenAIConnector(
+                client=self.client, api_key=self.client.api_keys["openai"].strip()
+            )
             return connector.chat(prompt, config, **config_kwargs)
         if config.provider == "azure-openai":
             connector = AzureOpenAIConnector(
+                client=self.client,
                 api_key=self.client.api_keys["azure-openai"].strip(),
                 **self.client.azure_openai_config
             )
             return connector.chat(prompt, config, **config_kwargs)
         if config.provider == "replicate":
             connector = ReplicateConnector(
-                api_key=self.client.api_keys["replicate"].strip()
+                client=self.client, api_key=self.client.api_keys["replicate"].strip()
             )
             return connector.chat(prompt, config, **config_kwargs)
         if config.provider == "anthropic":
             connector = AnthropicConnector(
-                api_key=self.client.api_keys["anthropic"].strip()
+                client=self.client, api_key=self.client.api_keys["anthropic"].strip()
             )
             return connector.chat(prompt, config, **config_kwargs)
         raise ValueError("Provider not found")
 
     def log(self, messages: Prompt, config: ChatConfig, response: Response):
-        config.log_chat(messages, response)
+        config.log_chat(
+            endpoint=self.client.endpoint, prompt=messages, response=response
+        )
 
 
 class AsyncChat(AsyncResource):
@@ -75,18 +90,30 @@ class AsyncChat(AsyncResource):
         self.client = client
 
     def log(self, messages: Prompt, config: ChatConfig, response: Response):
-        config.log_chat(messages, response)
+        config.log_chat(
+            endpoint=self.client.endpoint, prompt=messages, response=response
+        )
 
 
 class Speck(BaseClient):
-    api_key: Union[str, None] = None
-    api_keys: dict[str, str] = {}
+    api_key: Union[str, None]
+    api_keys: dict[str, str]
+    endpoint: str
 
-    def __init__(self, api_key: Union[str, None] = None, api_keys: dict[str, str] = {}):
+    def __init__(
+        self,
+        api_key: Union[str, None] = None,
+        api_keys: dict[str, str] = {},
+        endpoint: str = "https://api.speck.chat",
+    ):
         self.api_key = api_key
         self.api_keys = api_keys
+        self.endpoint = endpoint
+
         self.azure_openai_config = {}
+
         self.chat = Chat(self)
+        self.logger = Logger(self)
 
     def add_api_key(self, provider: str, api_key: str):
         self.api_keys[provider] = api_key

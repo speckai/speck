@@ -9,7 +9,6 @@ from openai import OpenAI
 
 from ..logs import logger
 from .chat_format import Message
-from .config import ENDPOINT
 
 client = OpenAI(api_key="hi")
 

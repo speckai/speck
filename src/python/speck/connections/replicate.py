@@ -34,6 +34,7 @@ class ReplicateConnector(IConnector, IChatClient):
 
     def __init__(
         self,
+        client: "Speck" = None,
         api_key: Union[str, None] = None,
         message_prefix: str = "<|im_start|>{role}\n",
         message_suffix: str = "<|im_end|>\n",
@@ -41,7 +42,7 @@ class ReplicateConnector(IConnector, IChatClient):
     ):
         # Todo: support custom replicate model mappings
         # By default, built for meta/llama-2-70b
-        super().__init__(provider=Providers.Replicate)
+        super().__init__(client=client, provider=Providers.Replicate)
         self.api_key = api_key
         self.message_prefix = message_prefix
         self.message_suffix = message_suffix

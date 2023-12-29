@@ -6,7 +6,10 @@ from .providers import Providers
 
 
 class IConnector(ABC):
-    def __init__(self, provider: Providers):
+    _client: "Speck"
+
+    def __init__(self, client: "Speck", provider: Providers):
+        self._client = client
         self.provider = provider
 
     # @abstractmethod
@@ -25,7 +28,9 @@ class IConnector(ABC):
         }
 
     def log(self, *, prompt: Prompt, response: Response, **kwargs):
-        ChatLogger.log(**self._get_log_kwargs(prompt, response, **kwargs))
+        ChatLogger.log(
+            self._client.endpoint, **self._get_log_kwargs(prompt, response, **kwargs)
+        )
 
     def __str__(self):
         return f"Client({self.provider.value})"

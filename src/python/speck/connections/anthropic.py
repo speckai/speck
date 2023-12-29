@@ -68,8 +68,8 @@ class AnthropicResponse(Response):
 
 
 class AnthropicConnector(IConnector, IChatClient):
-    def __init__(self, api_key: str = None):
-        super().__init__(provider=Providers.OpenAI)
+    def __init__(self, client: "Speck" = None, api_key: str = None):
+        super().__init__(client=client, provider=Providers.OpenAI)
         if api_key is not None:
             self.api_key = api_key
             self.url = "https://api.anthropic.com/v1/complete"
@@ -118,6 +118,7 @@ class AnthropicConnector(IConnector, IChatClient):
 
         if config.stream:
             return Stream(
+                client=self._client,
                 iterator=AnthropicStream(response.iter_lines()),
                 kwargs=self._get_log_kwargs(prompt, None, **all_kwargs),
                 processor=_process_chunk,
