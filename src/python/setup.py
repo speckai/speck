@@ -24,7 +24,7 @@ install_requires = [
 setup(
     name="speck",
     packages=find_packages(exclude=["tests", "tests.*"]),
-    version="0.0.6",
+    version="0.0.7",
     description="Speck - LLM observability framework.",
     long_description=readme(),
     long_description_content_type="text/markdown",
