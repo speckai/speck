@@ -5,9 +5,10 @@ from ..logs.logger import universal_format_log
 
 class ChatLogger:
     @staticmethod
-    def log(prompt: Any, model: str, response: Any, **kwargs):
+    def log(speck_api_key: str, prompt: Any, model: str, response: Any, **kwargs):
         if kwargs.get("config", {}).get("_log", True):
             universal_format_log(
+                speck_api_key=speck_api_key,
                 prompt=prompt,
                 model=model,
                 response=response,

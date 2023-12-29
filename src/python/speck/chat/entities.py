@@ -2,7 +2,6 @@ from abc import ABC, abstractmethod
 from typing import Any, Callable, Iterator, List, Literal, Optional, Union
 
 from openai._types import NotGiven
-
 # from dataclasses import dataclass
 from pydantic import BaseModel
 

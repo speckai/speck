@@ -2,11 +2,13 @@
 import os
 import sys
 
+sys.path.append((os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
+
 from speck import Message, Prompt, Speck, Stream
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-with open("../.env") as f:
+with open(".env") as f:
     lines = f.readlines()
     for line in lines:
         key, value = line.split("=")
@@ -17,10 +19,11 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 AZURE_OPENAI_API_KEY = os.getenv("AZURE_OPENAI_API_KEY")
 REPLICATE_API_TOKEN = os.getenv("REPLICATE_API_TOKEN")
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
-print(ANTHROPIC_API_KEY)
+SPECK_API_KEY = os.getenv("SPECK_API_KEY")
+print(SPECK_API_KEY)
 
 client = Speck(
-    api_key=None,
+    api_key="SPECK_API_KEY",
     api_keys={
         # "openai": OPENAI_API_KEY,
         "replicate": REPLICATE_API_TOKEN,
@@ -47,7 +50,7 @@ response: Stream = client.chat.create(
     _log=True,
 )
 
-# for r in response:
-#     print(r)
+for r in response:
+    print(r)
 
-print(response)
+# print(response)

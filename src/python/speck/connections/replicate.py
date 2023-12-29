@@ -9,14 +9,8 @@ from typing import Optional, Union
 import replicate
 from openai._types import NotGiven
 
-from ..chat.entities import (
-    ChatConfig,
-    IChatClient,
-    MessageChunk,
-    Prompt,
-    Response,
-    Stream,
-)
+from ..chat.entities import (ChatConfig, IChatClient, MessageChunk, Prompt,
+                             Response, Stream)
 from .connector import IConnector
 from .providers import Providers
 
@@ -35,13 +29,14 @@ class ReplicateConnector(IConnector, IChatClient):
     def __init__(
         self,
         api_key: Union[str, None] = None,
+        speck_api_key: Union[str, None] = None,
         message_prefix: str = "<|im_start|>{role}\n",
         message_suffix: str = "<|im_end|>\n",
         messages_end: str = "<|im_start|>assistant\n",
     ):
         # Todo: support custom replicate model mappings
         # By default, built for meta/llama-2-70b
-        super().__init__(provider=Providers.Replicate)
+        super().__init__(provider=Providers.Replicate, speck_api_key=speck_api_key)
         self.api_key = api_key
         self.message_prefix = message_prefix
         self.message_suffix = message_suffix
