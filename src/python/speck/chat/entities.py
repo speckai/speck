@@ -323,10 +323,12 @@ class Stream:
     # processor that has lambda which returns MessageDelta
     def __init__(
         self,
+        client: "Speck",
         iterator: Iterator[Any],
         kwargs: dict,
         processor: Callable[[Any], MessageChunk],
     ):
+        self._client = client
         self.message: str = ""
         self.tokens: int = 0
         self._iterator = iterator
@@ -347,7 +349,7 @@ class Stream:
                 content=self.message, raw={}, closed=True, completion_tokens=self.tokens
             )
             # Todo: add prompt_tokens using tiktoken
-            ChatLogger.log(**kwargs)
+            ChatLogger.log(endpoint=self._client.endpoint, **kwargs)
 
     def _process(self, item) -> MessageChunk:
         return self._processor(item)
@@ -434,9 +436,17 @@ class ChatConfig:
 
         return self
 
-    def log_chat(self, prompt: Prompt, response: Response, provider: str = "speck"):
+    def log_chat(
+        self,
+        *,
+        endpoint: str,
+        prompt: Prompt,
+        response: Response,
+        provider: str = "speck",
+    ):
         config = self.convert()
         ChatLogger.log(
+            endpoint=endpoint,
             provider=str(provider),
             model=str(config.model),
             prompt=prompt,

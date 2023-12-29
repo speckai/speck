@@ -46,28 +46,33 @@ class Chat(SyncResource):
                 )
 
         if config.provider == "openai":
-            connector = OpenAIConnector(api_key=self.client.api_keys["openai"].strip())
+            connector = OpenAIConnector(
+                client=self.client, api_key=self.client.api_keys["openai"].strip()
+            )
             return connector.chat(prompt, config, **config_kwargs)
         if config.provider == "azure-openai":
             connector = AzureOpenAIConnector(
+                client=self.client,
                 api_key=self.client.api_keys["azure-openai"].strip(),
                 **self.client.azure_openai_config
             )
             return connector.chat(prompt, config, **config_kwargs)
         if config.provider == "replicate":
             connector = ReplicateConnector(
-                api_key=self.client.api_keys["replicate"].strip()
+                client=self.client, api_key=self.client.api_keys["replicate"].strip()
             )
             return connector.chat(prompt, config, **config_kwargs)
         if config.provider == "anthropic":
             connector = AnthropicConnector(
-                api_key=self.client.api_keys["anthropic"].strip()
+                client=self.client, api_key=self.client.api_keys["anthropic"].strip()
             )
             return connector.chat(prompt, config, **config_kwargs)
         raise ValueError("Provider not found")
 
     def log(self, messages: Prompt, config: ChatConfig, response: Response):
-        config.log_chat(messages, response)
+        config.log_chat(
+            endpoint=self.client.endpoint, prompt=messages, response=response
+        )
 
 
 class AsyncChat(AsyncResource):
@@ -75,7 +80,9 @@ class AsyncChat(AsyncResource):
         self.client = client
 
     def log(self, messages: Prompt, config: ChatConfig, response: Response):
-        config.log_chat(messages, response)
+        config.log_chat(
+            endpoint=self.client.endpoint, prompt=messages, response=response
+        )
 
 
 class Speck(BaseClient):

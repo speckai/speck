@@ -10,6 +10,7 @@ from .openai import openai
 
 # Todo: Fix typing for this function (circular import)
 def universal_format_log(
+    endpoint: str,
     provider: "Providers",
     prompt: "Prompt",
     model: str,
@@ -31,7 +32,7 @@ def universal_format_log(
 
     try:
         request: requests.Response = requests.post(
-            f"{ENDPOINT}/logging/create/llm", json=body
+            f"{endpoint}/logging/create/llm", json=body
         )
         return request.json()
     except requests.exceptions.HTTPError as e:

@@ -45,8 +45,8 @@ class OpenAIResponse(Response):
 
 
 class OpenAIConnector(IConnector, IChatClient):
-    def __init__(self, api_key: str = None):
-        super().__init__(provider=Providers.OpenAI)
+    def __init__(self, client: "Speck" = None, api_key: str = None):
+        super().__init__(client=client, provider=Providers.OpenAI)
         if api_key is not None:
             self.api_key = api_key
             self.client = OpenAI(api_key=self.api_key)
