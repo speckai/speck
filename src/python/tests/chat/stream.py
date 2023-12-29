@@ -23,7 +23,7 @@ SPECK_API_KEY = os.getenv("SPECK_API_KEY")
 print(SPECK_API_KEY)
 
 client = Speck(
-    api_key="SPECK_API_KEY",
+    api_key=SPECK_API_KEY,
     api_keys={
         # "openai": OPENAI_API_KEY,
         "replicate": REPLICATE_API_TOKEN,
