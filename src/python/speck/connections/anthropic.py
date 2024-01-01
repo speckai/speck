@@ -114,7 +114,9 @@ class AnthropicConnector(IConnector, IChatClient):
             "stream": config.stream,
         }
 
-        response = requests.post(self.url, headers=headers, data=json.dumps(data))
+        response = requests.post(
+            self.url, headers=headers, data=json.dumps(data), stream=config.stream
+        )
 
         if config.stream:
             return Stream(
