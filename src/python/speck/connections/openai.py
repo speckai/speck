@@ -73,6 +73,7 @@ class OpenAIConnector(IConnector, IChatClient):
             )
 
             return Stream(
+                client=self._client,
                 iterator=output_stream,
                 kwargs=self._get_log_kwargs(prompt, None, **all_kwargs),
                 processor=_process_chunk,
