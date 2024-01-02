@@ -1,7 +1,7 @@
 from speck import Speck
 
 OPENAI_API_KEY = "sk-..."
-speck = Speck(api_key=None, api_keys={"openai": OPENAI_API_KEY})
+client = Speck(api_key=None, api_keys={"openai": OPENAI_API_KEY})
 
 
 # Universal chat format
@@ -18,7 +18,7 @@ config = ChatConfig(
     temperature=0.0,
     stream=True,
 )
-response: Response = speck.chat.create(prompt=prompt, config=config)
+response: Response = client.chat.create(prompt=prompt, config=config)
 
 
 # OpenAI format
@@ -29,3 +29,20 @@ config = OpenAIChatConfig(
     temperature=0.0,
     stream=True,
 )
+
+# ...
+
+
+# Chat logger
+client.chat.log(
+    messages=Prompt(
+        messages=[{"role": "system", "content": "Hello, how are you, {name}?"}],
+    ),
+    config=ChatConfig(
+        model="openai:gpt-3.5-turbo",
+    ),
+    response="Example output.",
+)
+
+# App logger
+client.logger.info("Hello, world!")

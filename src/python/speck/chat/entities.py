@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
 from typing import Any, Callable, Iterator, List, Literal, Optional, Tuple, Union
 
@@ -6,11 +8,8 @@ from openai._types import NotGiven
 # from dataclasses import dataclass
 from pydantic import BaseModel
 
-from .._types import MessagesType
 from ..chat.logger import ChatLogger
 
-MessageRole = Literal["system", "user", "assistant"]
-OpenAIModel = Tuple[Literal["gpt-4", "gpt-3.5", "gpt-3.5-turbo"], str]
 NOT_GIVEN = None
 
 
@@ -30,7 +29,7 @@ class Prompt(str):
 
     def __init__(
         self,
-        messages: MessagesType,
+        messages: PromptTypes,
         variables: Union[dict[str, str], None] = None,
         **kwargs,
     ):
@@ -54,6 +53,15 @@ class Prompt(str):
         self.messages = messages
         self.variables = variables
         super().__init__()
+
+    @classmethod
+    def create(
+        cls, messages: PromptTypes, variables: dict[str, str] = None
+    ) -> "Prompt":
+        if isinstance(messages, cls):
+            # Todo: clone object and add variables
+            return messages
+        return cls(messages=messages, variables=variables)
 
     @classmethod
     def _read(cls, lines: str) -> "Prompt":
@@ -169,7 +177,7 @@ class Prompt(str):
 
     def __new__(
         cls,
-        messages: MessagesType,
+        messages: PromptTypes,
         **kwargs,
     ):
         # Todo: Handle string, Message, and list[Message]
@@ -308,6 +316,15 @@ class Response(BaseModel):
         for key, value in kwargs.items():
             setattr(self, key, value)
 
+    @classmethod
+    def create(cls, response: ResponseTypes) -> "Response":
+        if isinstance(response, cls):
+            return response
+        elif isinstance(response, str):
+            return cls(content=response)
+        else:
+            raise NotImplementedError
+
     def __str__(self):
         return f"Response({self.content}, raw={self.raw})"
 
@@ -415,6 +432,15 @@ class ChatConfig:
         self.presence_penalty = presence_penalty
         self._kwargs = config_kwargs
 
+    @classmethod
+    def create(cls, config: ChatConfigTypes) -> "ChatConfig":
+        if isinstance(config, cls):
+            return config
+        elif isinstance(config, dict):
+            return cls(**config)
+        else:
+            raise NotImplementedError
+
     def get(self, key: str, default: Any = None) -> Any:
         return getattr(self, key, default)
 
@@ -507,3 +533,11 @@ class IChatClient(ABC):
         **config_kwargs,
     ) -> Union[Response, Stream]:
         pass
+
+
+PromptTypes = Union[str, Message, list[Message], list[dict[str, str]]]
+ResponseTypes = Union[Response, str]
+ChatConfigTypes = Union[ChatConfig, dict[str, str]]
+
+MessageRole = Literal["system", "user", "assistant"]
+OpenAIModel = Tuple[Literal["gpt-4", "gpt-3.5", "gpt-3.5-turbo"], str]

@@ -1,7 +1,13 @@
 from typing import Tuple, Union
 
-from ._types import MessagesType
-from .chat.entities import ChatConfig, Prompt, Response
+from .chat.entities import (
+    ChatConfig,
+    ChatConfigTypes,
+    Prompt,
+    PromptTypes,
+    Response,
+    ResponseTypes,
+)
 from .connections.anthropic import AnthropicConnector
 from .connections.openai import OpenAIConnector
 from .connections.openai_azure import AzureOpenAIConnector
@@ -35,13 +41,37 @@ class Logger(SyncResource):  # App logger
         kwargs["endpoint"] = self.client.endpoint
         app.log(*args, **kwargs)
 
+    def info(self, *args, **kwargs):
+        kwargs["endpoint"] = self.client.endpoint
+        app.info(*args, **kwargs)
+
+    def debug(self, *args, **kwargs):
+        kwargs["endpoint"] = self.client.endpoint
+        app.debug(*args, **kwargs)
+
+    def warning(self, *args, **kwargs):
+        kwargs["endpoint"] = self.client.endpoint
+        app.warning(*args, **kwargs)
+
+    def error(self, *args, **kwargs):
+        kwargs["endpoint"] = self.client.endpoint
+        app.error(*args, **kwargs)
+
+    def critical(self, *args, **kwargs):
+        kwargs["endpoint"] = self.client.endpoint
+        app.critical(*args, **kwargs)
+
+    def exception(self, *args, **kwargs):
+        kwargs["endpoint"] = self.client.endpoint
+        app.exception(*args, **kwargs)
+
 
 class Chat(SyncResource):
     def __init__(self, client: "Speck"):
         self.client = client
 
     def create(
-        self, *, prompt: MessagesType, config: ChatConfig = None, **config_kwargs
+        self, *, prompt: PromptTypes, config: ChatConfig = None, **config_kwargs
     ):
         if not isinstance(prompt, Prompt):
             prompt = Prompt(messages=prompt)
@@ -89,10 +119,13 @@ class Chat(SyncResource):
             return connector.chat(prompt, config, **config_kwargs)
         raise ValueError("Provider not found")
 
-    def log(self, messages: Prompt, config: ChatConfig, response: Response):
-        config.log_chat(
-            endpoint=self.client.endpoint, prompt=messages, response=response
-        )
+    def log(
+        self, messages: PromptTypes, config: ChatConfigTypes, response: ResponseTypes
+    ):
+        prompt = Prompt.create(messages)
+        config = ChatConfig.create(config)
+        response = Response.create(response)
+        config.log_chat(endpoint=self.client.endpoint, prompt=prompt, response=response)
 
 
 class AsyncChat(AsyncResource):
