@@ -24,7 +24,7 @@ install_requires = [
 setup(
     name="speck",
     packages=find_packages(exclude=["tests", "tests.*"]),
-    version="0.0.7",
+    version="0.0.8",
     description="Speck - The dev framework for LLM apps.",
     long_description=readme(),
     long_description_content_type="text/markdown",
@@ -42,7 +42,7 @@ setup(
         "replicate",
     ],
     url="https://github.com/speckai/speck",
-    download_url="https://github.com/speckai/speck/archive/refs/tags/v0.0.7.tar.gz",
+    download_url="https://github.com/speckai/speck/archive/refs/tags/v0.0.8.tar.gz",
     homepage="https://speck.chat",
     author="",
     author_email="Lucas Jaggernauth <luke@speck.chat>, Raghav Pillai <raghav@speck.chat>",
