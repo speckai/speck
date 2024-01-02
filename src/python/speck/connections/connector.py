@@ -1,7 +1,6 @@
 from abc import ABC
 
 from ..chat.entities import ChatLogger, Prompt, Response
-from ..logs.logger import universal_format_log
 from .providers import Providers
 
 
