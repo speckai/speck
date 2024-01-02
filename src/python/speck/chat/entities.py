@@ -1,15 +1,16 @@
 from abc import ABC, abstractmethod
-from typing import Any, Callable, Iterator, List, Literal, Optional, Union
+from typing import Any, Callable, Iterator, List, Literal, Optional, Tuple, Union
 
 from openai._types import NotGiven
 
 # from dataclasses import dataclass
 from pydantic import BaseModel
 
+from .._types import MessagesType
 from ..chat.logger import ChatLogger
 
 MessageRole = Literal["system", "user", "assistant"]
-OpenAIModel = Literal["gpt-4", "gpt-3.5", "gpt-3.5-turbo"]
+OpenAIModel = Tuple[Literal["gpt-4", "gpt-3.5", "gpt-3.5-turbo"], str]
 NOT_GIVEN = None
 
 
@@ -29,7 +30,7 @@ class Prompt(str):
 
     def __init__(
         self,
-        messages: Union[str, Message, list[Message], list[dict[str, str]]],
+        messages: MessagesType,
         variables: Union[dict[str, str], None] = None,
         **kwargs,
     ):
@@ -168,7 +169,7 @@ class Prompt(str):
 
     def __new__(
         cls,
-        messages: Union[str, Message, list[Message], list[dict[str, str]]],
+        messages: MessagesType,
         **kwargs,
     ):
         # Todo: Handle string, Message, and list[Message]

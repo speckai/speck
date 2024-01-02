@@ -1,5 +1,6 @@
-from typing import Union
+from typing import Tuple, Union
 
+from ._types import MessagesType
 from .chat.entities import ChatConfig, Prompt, Response
 from .connections.anthropic import AnthropicConnector
 from .connections.openai import OpenAIConnector
@@ -39,10 +40,19 @@ class Chat(SyncResource):
     def __init__(self, client: "Speck"):
         self.client = client
 
-    def create(self, *, prompt: Prompt, config: ChatConfig = None, **config_kwargs):
+    def create(
+        self, *, prompt: MessagesType, config: ChatConfig = None, **config_kwargs
+    ):
+        if not isinstance(prompt, Prompt):
+            prompt = Prompt(messages=prompt)
+
         if config is None:
             config = ChatConfig(**config_kwargs)
             # Todo: convert to default config based on class param
+        elif len(config_kwargs) > 0:
+            # Set config_kwargs as config attributes
+            for key, value in config_kwargs.items():
+                setattr(config, key, value)
 
         if config.provider is None:
             # Try to extract provider by getting string before : in model
