@@ -3,9 +3,7 @@ from typing import Any
 import requests
 
 from ..util import get_dict
-from .app import app
 from .metadata import generate_metadata_dict
-from .openai import openai
 
 
 # Todo: Fix typing for this function (circular import)

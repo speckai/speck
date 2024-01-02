@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Any, Callable, Iterator, List, Literal, Optional, Tuple, Union
+from typing import Any, Callable, Iterator, Literal, Optional, Tuple, Union
 
 from openai._types import NotGiven
 

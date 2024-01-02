@@ -7,10 +7,9 @@ Features:
 - Text-to-Speech
 - Speech-to-Text
 """
-from typing import Literal, Optional, Union
+from typing import Union
 
 from openai import OpenAI
-from openai._types import NotGiven
 from openai.types.chat import ChatCompletion
 
 from ..chat.entities import (
@@ -18,7 +17,6 @@ from ..chat.entities import (
     ChatConfig,
     IChatClient,
     MessageChunk,
-    OpenAIChatConfig,
     Prompt,
     Response,
     Stream,

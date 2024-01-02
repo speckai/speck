@@ -4,10 +4,9 @@ URL: https://replicate.com/
 Features:
 - Chat
 """
-from typing import Optional, Union
+from typing import Union
 
 import replicate
-from openai._types import NotGiven
 
 from ..chat.entities import (
     ChatConfig,
