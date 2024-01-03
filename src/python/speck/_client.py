@@ -73,8 +73,7 @@ class Chat(SyncResource):
     def create(
         self, *, prompt: PromptTypes, config: ChatConfig = None, **config_kwargs
     ):
-        if not isinstance(prompt, Prompt):
-            prompt = Prompt(messages=prompt)
+        prompt = Prompt.create(prompt)
 
         if config is None:
             config = ChatConfig(**config_kwargs)
