@@ -10,10 +10,13 @@ class app:
     def set_api_key(cls, api_key: str) -> None:
         cls.api_key = api_key
 
-    def log(message: str, endpoint: str = "https://api.speck.chat") -> dict[str, str]:
-        if not api_key:
-            return
-        
+    @classmethod
+    def log(
+        cls, message: str, endpoint: str = "https://api.speck.chat"
+    ) -> dict[str, str]:
+        if not cls.api_key:
+            return {}
+
         body: dict[str, str] = {
             "message": message,
             "metadata": generate_metadata_dict(),

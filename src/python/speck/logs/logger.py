@@ -17,6 +17,9 @@ def universal_format_log(
     session_key: str = None,
     **kwargs,
 ) -> dict[str, str]:
+    if not speck_api_key:
+        return {}
+
     body: dict[str, Any] = {
         "input": {
             # Todo: Fix typing for Providers enum (circular import)

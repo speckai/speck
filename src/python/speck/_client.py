@@ -93,10 +93,11 @@ class Chat(SyncResource):
                 raise ValueError(
                     "Provider must be specified in config or as a class param"
                 )
-            
-        if config._log and self.client.api_key is None:
-            raise ValueError("An API key is required to perform logging")
-            
+
+        # By default, ignore logging if no api key is provided
+        # if config._log and self.client.api_key is None:
+        #     raise ValueError("An API key is required to perform logging")
+
         if self.client.api_keys.get(config.provider) is None:
             raise ValueError(f"An API key for {config.provider} is required")
 
@@ -110,21 +111,21 @@ class Chat(SyncResource):
                 speck_api_key=self.client.api_key.strip(),
                 client=self.client,
                 api_key=self.client.api_keys["azure-openai"].strip(),
-                **self.client.azure_openai_config
+                **self.client.azure_openai_config,
             )
             return connector.chat(prompt, config, **config_kwargs)
         if config.provider == "replicate":
             connector = ReplicateConnector(
                 speck_api_key=self.client.api_key.strip(),
-                api_key=self.client.api_keys["replicate"].strip()
-                client=self.client, api_key=self.client.api_keys["replicate"].strip()
+                client=self.client,
+                api_key=self.client.api_keys["replicate"].strip(),
             )
             return connector.chat(prompt, config, **config_kwargs)
         if config.provider == "anthropic":
             connector = AnthropicConnector(
                 speck_api_key=self.client.api_key.strip(),
-                api_key=self.client.api_keys["anthropic"].strip()
-                client=self.client, api_key=self.client.api_keys["anthropic"].strip()
+                client=self.client,
+                api_key=self.client.api_keys["anthropic"].strip(),
             )
             return connector.chat(prompt, config, **config_kwargs)
         raise ValueError("Provider not found")
