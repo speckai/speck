@@ -3,8 +3,7 @@ import os
 import sys
 
 sys.path.append((os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
-
-from speck import Message, Prompt, Speck, Stream
+from speck import ChatConfig, Message, Prompt, Response, Speck, Stream
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -25,25 +24,27 @@ print(SPECK_API_KEY)
 client = Speck(
     api_key=SPECK_API_KEY,
     api_keys={
-        # "openai": OPENAI_API_KEY,
+        "openai": OPENAI_API_KEY,
         "replicate": REPLICATE_API_TOKEN,
         "azure_openai": AZURE_OPENAI_API_KEY,
         "anthropic": ANTHROPIC_API_KEY,
     },
 )
+
 client.add_azure_openai_config("", "")
 
-response: Stream = client.chat.create(
+response: Response = client.chat.create(
     prompt=Prompt(
         messages=[
             Message(role="system", content="You respond with 1 word answers."),
             Message(
                 role="user",
-                content="Respond with YES or NO. Do you understand? Then, recite the A B Cs",
+                content="Respond with YES or NO. Do you understand? Then, count to 500.",
             ),
         ],
     ),
-    model="anthropic:claude-2",
+    model="openai:gpt-3.5-turbo",
+    # model="anthropic:claude-2",
     # model="replicate:meta/llama-2-70b-chat:02e509c789964a7ea8736978a43525956ef40397be9033abf9fd2badfe68c9e3",
     temperature=0.0,
     stream=True,

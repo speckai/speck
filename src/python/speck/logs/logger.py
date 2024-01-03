@@ -2,16 +2,14 @@ from typing import Any
 
 import requests
 
-from ..models import ENDPOINT
 from ..util import get_dict
-from .app import app
 from .metadata import generate_metadata_dict
-from .openai import openai
 
 
 # Todo: Fix typing for this function (circular import)
 def universal_format_log(
     speck_api_key: str,
+    endpoint: str,
     provider: "Providers",
     prompt: "Prompt",
     model: str,
@@ -34,7 +32,7 @@ def universal_format_log(
     try:
         headers = {"X-API-Key": speck_api_key}
         request: requests.Response = requests.post(
-            f"{ENDPOINT}/logging/create/llm", headers=headers, json=body
+            f"{endpoint}/logging/create/llm", headers=headers, json=body
         )
         return request.json()
     except requests.exceptions.HTTPError as e:

@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="assets/speck_banner.jpg">
+    <img src="assets/speck_banner.jpg" alt="Speck">
 </p>
 <p align="center">
     <a href="https://pypi.org/project/speck/">
@@ -8,8 +8,8 @@
     <a href="https://discord.com/invite/frnaYYaKj3">
         <img src="https://dcbadge.vercel.app/api/server/frnaYYaKj3?style=flat" />
     </a>
-    <a href="https://github.com/speckai/speck">
-        <img src="https://img.shields.io/github/commit-activity/m/speckai/speck" />
+    <a href="https://linkedin.com/company/speck">
+        <img src="https://img.shields.io/badge/LinkedIn-0077B5?logo=linkedin&logoColor=white" />
     </a>
 </p>
 

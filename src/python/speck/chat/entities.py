@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
-from typing import Any, Callable, Iterator, List, Literal, Optional, Union
+from typing import Any, Callable, Iterator, Literal, Optional, Tuple, Union
 
 from openai._types import NotGiven
 # from dataclasses import dataclass
@@ -7,8 +9,6 @@ from pydantic import BaseModel
 
 from ..chat.logger import ChatLogger
 
-MessageRole = Literal["system", "user", "assistant"]
-OpenAIModel = Literal["gpt-4", "gpt-3.5", "gpt-3.5-turbo"]
 NOT_GIVEN = None
 
 
@@ -28,7 +28,7 @@ class Prompt(str):
 
     def __init__(
         self,
-        messages: Union[str, Message, list[Message], list[dict[str, str]]],
+        messages: PromptTypes,
         variables: Union[dict[str, str], None] = None,
         **kwargs,
     ):
@@ -52,6 +52,15 @@ class Prompt(str):
         self.messages = messages
         self.variables = variables
         super().__init__()
+
+    @classmethod
+    def create(
+        cls, messages: PromptTypes, variables: dict[str, str] = None
+    ) -> "Prompt":
+        if isinstance(messages, cls):
+            # Todo: clone object and add variables
+            return messages
+        return cls(messages=messages, variables=variables)
 
     @classmethod
     def _read(cls, lines: str) -> "Prompt":
@@ -167,7 +176,7 @@ class Prompt(str):
 
     def __new__(
         cls,
-        messages: Union[str, Message, list[Message], list[dict[str, str]]],
+        messages: PromptTypes,
         **kwargs,
     ):
         # Todo: Handle string, Message, and list[Message]
@@ -306,6 +315,15 @@ class Response(BaseModel):
         for key, value in kwargs.items():
             setattr(self, key, value)
 
+    @classmethod
+    def create(cls, response: ResponseTypes) -> "Response":
+        if isinstance(response, cls):
+            return response
+        elif isinstance(response, str):
+            return cls(content=response)
+        else:
+            raise NotImplementedError
+
     def __str__(self):
         return f"Response({self.content}, raw={self.raw})"
 
@@ -322,10 +340,12 @@ class Stream:
     # processor that has lambda which returns MessageDelta
     def __init__(
         self,
+        client: "Speck",
         iterator: Iterator[Any],
         kwargs: dict,
         processor: Callable[[Any], MessageChunk],
     ):
+        self._client = client
         self.message: str = ""
         self.tokens: int = 0
         self._iterator = iterator
@@ -346,7 +366,7 @@ class Stream:
                 content=self.message, raw={}, closed=True, completion_tokens=self.tokens
             )
             # Todo: add prompt_tokens using tiktoken
-            ChatLogger.log(**kwargs)
+            ChatLogger.log(endpoint=self._client.endpoint, **kwargs)
 
     def _process(self, item) -> MessageChunk:
         return self._processor(item)
@@ -411,6 +431,15 @@ class ChatConfig:
         self.presence_penalty = presence_penalty
         self._kwargs = config_kwargs
 
+    @classmethod
+    def create(cls, config: ChatConfigTypes) -> "ChatConfig":
+        if isinstance(config, cls):
+            return config
+        elif isinstance(config, dict):
+            return cls(**config)
+        else:
+            raise NotImplementedError
+
     def get(self, key: str, default: Any = None) -> Any:
         return getattr(self, key, default)
 
@@ -433,9 +462,17 @@ class ChatConfig:
 
         return self
 
-    def log_chat(self, prompt: Prompt, response: Response, provider: str = "speck"):
+    def log_chat(
+        self,
+        *,
+        endpoint: str,
+        prompt: Prompt,
+        response: Response,
+        provider: str = "speck",
+    ):
         config = self.convert()
         ChatLogger.log(
+            endpoint=endpoint,
             provider=str(provider),
             model=str(config.model),
             prompt=prompt,
@@ -495,3 +532,11 @@ class IChatClient(ABC):
         **config_kwargs,
     ) -> Union[Response, Stream]:
         pass
+
+
+PromptTypes = Union[str, Message, list[Message], list[dict[str, str]]]
+ResponseTypes = Union[Response, str]
+ChatConfigTypes = Union[ChatConfig, dict[str, str]]
+
+MessageRole = Literal["system", "user", "assistant"]
+OpenAIModel = Tuple[Literal["gpt-4", "gpt-3.5", "gpt-3.5-turbo"], str]

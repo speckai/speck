@@ -5,16 +5,19 @@ Features:
 - Chat
 """
 import json
-from typing import Literal, Optional, Union
+from typing import Union
 
 import requests
-from openai import OpenAI
-from openai._types import NotGiven
-from openai.types.chat import ChatCompletion
 
-from ..chat.entities import (NOT_GIVEN, ChatConfig, IChatClient, MessageChunk,
-                             OpenAIChatConfig, Prompt, Response, Stream)
-from ..util import filter_kwargs
+from ..chat.entities import (
+    NOT_GIVEN,
+    ChatConfig,
+    IChatClient,
+    MessageChunk,
+    Prompt,
+    Response,
+    Stream,
+)
 from .connector import IConnector
 from .providers import Providers
 
@@ -60,8 +63,8 @@ class AnthropicResponse(Response):
 
 
 class AnthropicConnector(IConnector, IChatClient):
-    def __init__(self, api_key: str = None, speck_api_key: str = None):
-        super().__init__(provider=Providers.OpenAI, speck_api_key=speck_api_key)
+    def __init__(self, api_key: str = None, speck_api_key: str = None, client: "Speck" = None, api_key: str = None):
+        super().__init__(client=client, provider=Providers.OpenAI, speck_api_key=speck_api_key)
         if api_key is not None:
             self.api_key = api_key
             self.url = "https://api.anthropic.com/v1/complete"
@@ -107,10 +110,13 @@ class AnthropicConnector(IConnector, IChatClient):
             "stream": config.stream,
         }
 
-        response = requests.post(self.url, headers=headers, data=json.dumps(data))
+        response = requests.post(
+            self.url, headers=headers, data=json.dumps(data), stream=config.stream
+        )
 
         if config.stream:
             return Stream(
+                client=self._client,
                 iterator=AnthropicStream(response.iter_lines()),
                 kwargs=self._get_log_kwargs(prompt, None, **all_kwargs),
                 processor=_process_chunk

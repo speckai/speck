@@ -1,12 +1,14 @@
 from abc import ABC
 
 from ..chat.entities import ChatLogger, Prompt, Response
-from ..logs.logger import universal_format_log
 from .providers import Providers
 
 
 class IConnector(ABC):
-    def __init__(self, provider: Providers, speck_api_key: str):
+    _client: "Speck"
+
+    def __init__(self, client: "Speck", provider: Providers, speck_api_key: str):
+        self._client = client
         self.provider = provider
         self.speck_api_key = speck_api_key
 
@@ -27,7 +29,9 @@ class IConnector(ABC):
         }
 
     def log(self, *, prompt: Prompt, response: Response, **kwargs):
-        ChatLogger.log(**self._get_log_kwargs(prompt, response, **kwargs))
+        ChatLogger.log(
+            self._client.endpoint, **self._get_log_kwargs(prompt, response, **kwargs)
+        )
 
     def __str__(self):
         return f"Client({self.provider.value})"

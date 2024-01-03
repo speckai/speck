@@ -11,7 +11,7 @@ def call_anthropic_api():
     headers = {
         "anthropic-version": "2023-06-01",
         "content-type": "application/json",
-        "x-api-key": "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"  # Replace with your actual API key
+        "x-api-key": "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",  # Replace with your actual API key
     }
 
     # Data payload
@@ -19,17 +19,18 @@ def call_anthropic_api():
         "model": "claude-2",
         "prompt": "\n\nHuman: Hello, world!\n\nAssistant:",
         "max_tokens_to_sample": 256,
-        "stream": False
+        "stream": True,
     }
 
     # Making the POST request
-    response = requests.post(url, headers=headers, data=json.dumps(data))
+    response = requests.post(url, headers=headers, data=json.dumps(data), stream=True)
 
     # Checking if the request was successful
     if response.status_code == 200:
         return response.json()
     else:
         return response.text
+
 
 # Call the function
 response = call_anthropic_api()

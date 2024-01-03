@@ -4,10 +4,9 @@ URL: https://replicate.com/
 Features:
 - Chat
 """
-from typing import Optional, Union
+from typing import Union
 
 import replicate
-from openai._types import NotGiven
 
 from ..chat.entities import (ChatConfig, IChatClient, MessageChunk, Prompt,
                              Response, Stream)
@@ -28,6 +27,7 @@ class ReplicateConnector(IConnector, IChatClient):
 
     def __init__(
         self,
+        client: "Speck" = None,
         api_key: Union[str, None] = None,
         speck_api_key: Union[str, None] = None,
         message_prefix: str = "<|im_start|>{role}\n",
@@ -36,7 +36,7 @@ class ReplicateConnector(IConnector, IChatClient):
     ):
         # Todo: support custom replicate model mappings
         # By default, built for meta/llama-2-70b
-        super().__init__(provider=Providers.Replicate, speck_api_key=speck_api_key)
+        super().__init__(client=client, provider=Providers.Replicate, speck_api_key=speck_api_key)
         self.api_key = api_key
         self.message_prefix = message_prefix
         self.message_suffix = message_suffix

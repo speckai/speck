@@ -1,6 +1,7 @@
 <p align="center">
     <img src="https://raw.githubusercontent.com/speckai/speck/main/assets/speck_banner.jpg">
-</p>
+</p>        <img src="https://img.shields.io/badge/LinkedIn-0077B5?logo=linkedin&logoColor=white" />
+
 <p align="center">
     <a href="https://pypi.org/project/speck/">
         <img src="https://img.shields.io/pypi/dm/speck" />
@@ -10,6 +11,8 @@
     </a>
     <a href="https://github.com/speckai/speck">
         <img src="https://img.shields.io/github/commit-activity/m/speckai/speck" />
+    </a>
+    <a href="https://linkedin.com/company/speck">
     </a>
 </p>
 

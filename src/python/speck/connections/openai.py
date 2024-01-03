@@ -7,14 +7,20 @@ Features:
 - Text-to-Speech
 - Speech-to-Text
 """
-from typing import Literal, Optional, Union
+from typing import Union
 
 from openai import OpenAI
-from openai._types import NotGiven
 from openai.types.chat import ChatCompletion
 
-from ..chat.entities import (NOT_GIVEN, ChatConfig, IChatClient, MessageChunk,
-                             OpenAIChatConfig, Prompt, Response, Stream)
+from ..chat.entities import (
+    NOT_GIVEN,
+    ChatConfig,
+    IChatClient,
+    MessageChunk,
+    Prompt,
+    Response,
+    Stream,
+)
 from ..util import filter_kwargs, get_dict
 from .connector import IConnector
 from .providers import Providers
@@ -37,8 +43,8 @@ class OpenAIResponse(Response):
 
 
 class OpenAIConnector(IConnector, IChatClient):
-    def __init__(self, api_key: str = None, speck_api_key: str = None):
-        super().__init__(provider=Providers.OpenAI, speck_api_key=speck_api_key)
+    def __init__(self, client: "Speck" = None, api_key: str = None, speck_api_key: str = None):
+        super().__init__(client=client, provider=Providers.OpenAI, speck_api_key=speck_api_key)
         if api_key is not None:
             self.api_key = api_key
             self.client = OpenAI(api_key=self.api_key)
@@ -65,6 +71,7 @@ class OpenAIConnector(IConnector, IChatClient):
             )
 
             return Stream(
+                client=self._client,
                 iterator=output_stream,
                 kwargs=self._get_log_kwargs(prompt, None, **all_kwargs),
                 processor=_process_chunk,
