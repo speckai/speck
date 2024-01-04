@@ -2,13 +2,13 @@ from _load import client
 from speck import Message, Prompt, Response, Stream
 
 models = [
-    # "openai:gpt-3.5-turbo",
+    "openai:gpt-3.5-turbo",
     "anthropic:claude-2",
-    # "replicate:meta/llama-2-13b-chat:f4e2de70d66816a838a89eeeb621910adffb0dd0baba3976c96980970978018d",
+    "replicate:meta/llama-2-13b-chat:f4e2de70d66816a838a89eeeb621910adffb0dd0baba3976c96980970978018d",
 ]
 
 for model in models:
-    print(f"Model: {model}")
+    print(f"\n\n\nModel: {model}")
     response: Stream = client.chat.create(
         prompt=Prompt(
             messages=[
@@ -21,12 +21,13 @@ for model in models:
         ),
         model=model,
         temperature=1.0,
-        stream=False,
+        max_tokens=100,
+        stream=True,
         _log=True,
     )
 
-    # for r in response:
-    #     print(r.content or "", end="", flush=True)
-    #
-    # print()
-    print(response)
+    for r in response:
+        print(r.content or "", end="", flush=True)
+
+    print()
+    # print(response)
