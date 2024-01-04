@@ -3,8 +3,8 @@ from speck import Message, Prompt, Response, Stream
 
 models = [
     # "openai:gpt-3.5-turbo",
-    # "anthropic:claude-2",
-    "replicate:meta/llama-2-13b-chat:f4e2de70d66816a838a89eeeb621910adffb0dd0baba3976c96980970978018d",
+    "anthropic:claude-2",
+    # "replicate:meta/llama-2-13b-chat:f4e2de70d66816a838a89eeeb621910adffb0dd0baba3976c96980970978018d",
 ]
 
 for model in models:
@@ -15,7 +15,7 @@ for model in models:
                 Message(role="system", content="You respond with 1 word answers."),
                 Message(
                     role="user",
-                    content="Respond with YES or NO. Do you understand? Then, count to 60.",
+                    content="Respond with YES or NO. Do you understand? Then, count to 10.",
                 ),
             ],
         ),

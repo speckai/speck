@@ -37,6 +37,7 @@ def universal_format_log(
         request: requests.Response = requests.post(
             f"{endpoint}/logging/create/llm", headers=headers, json=body
         )
+        request.raise_for_status()
         return request.json()
     except requests.exceptions.HTTPError as e:
         print("HTTP", e)

@@ -14,7 +14,7 @@ with open(".env") as f:
     lines = f.readlines()
     for line in lines:
         key, value = line.split("=")
-        os.environ[key] = value
+        os.environ[key] = value.strip()
 
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")

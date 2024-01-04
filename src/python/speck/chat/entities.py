@@ -472,6 +472,7 @@ class ChatConfig:
     def log_chat(
         self,
         *,
+        speck_api_key: str,
         endpoint: str,
         prompt: Prompt,
         response: Response,
@@ -479,6 +480,7 @@ class ChatConfig:
     ):
         config = self.convert()
         ChatLogger.log(
+            speck_api_key=speck_api_key,
             endpoint=endpoint,
             provider=str(provider),
             model=str(config.model),

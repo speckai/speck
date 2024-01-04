@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import logging
 from typing import Any, Callable, Iterator
 
@@ -38,6 +40,7 @@ class OpenAIStream:
         iterator: Iterator[Any],
         kwargs: dict,
         processor: Callable[[Any], Any],
+        speck_api_key: str,
     ):
         self.config: OpenAIChatConfig = config
         self.prompt = prompt
@@ -48,6 +51,7 @@ class OpenAIStream:
         self._has_logged = False
         self._closed = False
         self._last_item = None
+        self.speck_api_key = speck_api_key
 
     def _log(self):
         if not self._has_logged:
@@ -61,6 +65,7 @@ class OpenAIStream:
 
             print("Logging chat!", self.message)
             self.config.log_chat(
+                speck_api_key=self.speck_api_key,
                 endpoint="https://api.speck.chat",
                 prompt=self.prompt,
                 response=Response(content=self.message, raw={}, closed=True),
@@ -95,7 +100,7 @@ class OpenAIStream:
             pass
 
 
-def chat_wrapper(original_method, *args, **kwargs):
+def chat_wrapper(self: OpenAIWrapper, original_method, *args, **kwargs):
     """
     Example of a wrapper function that can be used with add_method_wrapper.
 
@@ -131,11 +136,13 @@ def chat_wrapper(original_method, *args, **kwargs):
                 "provider": "openai",
             },
             processor=lambda a: a,
+            speck_api_key=self._speck_api_key,
         )
     else:
         result = original_method(*args, **kwargs)
 
         config.log_chat(
+            speck_api_key=self._speck_api_key,
             endpoint="https://api.speck.chat",
             prompt=prompt,
             response=result,
@@ -149,7 +156,7 @@ def stream_next_wrapper(original_method, *args, **kwargs):
     print(f"Before calling {original_method.__name__}")
     result = original_method(*args, **kwargs)
     print(f"After calling {original_method.__name__}")
-    print(result)
+    # print(result)
     return result
 
 
@@ -157,12 +164,13 @@ def stream_iter_wrapper(original_method, *args, **kwargs):
     print(f"Before calling {original_method.__name__}")
     result = original_method(*args, **kwargs)
     print(f"After calling {original_method.__name__}")
-    print(result)
+    # print(result)
     return result
 
 
 class OpenAIWrapper(_OpenAI):
-    pass
+    def add_speck_api_key(self, speck_api_key: str):
+        self._speck_api_key = speck_api_key
 
 
 def _wrapper_init(original_method, *args, **kwargs):
@@ -180,7 +188,11 @@ def _wrapper_init(original_method, *args, **kwargs):
     result = original_method(*args, **kwargs)
     logger.info(f"Adding method wrappers {original_method.__name__}")
     self = args[0]
-    wrap_method(self.chat.completions, "create", chat_wrapper)
+    wrap_method(
+        self.chat.completions,
+        "create",
+        lambda *args, **kwargs: chat_wrapper(self, *args, **kwargs),
+    )
     logger.info(f"After calling {original_method.__name__}")
     return result
 
