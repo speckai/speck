@@ -63,11 +63,16 @@ class AnthropicResponse(Response):
 
 
 class AnthropicConnector(IConnector, IChatClient):
-    def __init__(self, client: "Speck" = None, api_key: str = None):
-        super().__init__(client=client, provider=Providers.OpenAI)
+    def __init__(
+        self, api_key: str = None, speck_api_key: str = None, client: "Speck" = None
+    ):
+        super().__init__(
+            client=client, provider=Providers.OpenAI, speck_api_key=speck_api_key
+        )
         if api_key is not None:
             self.api_key = api_key
             self.url = "https://api.anthropic.com/v1/complete"
+        self.speck_api_key = speck_api_key
 
     def _convert_messages_to_prompt(self, messages: Prompt) -> str:
         res = ""
