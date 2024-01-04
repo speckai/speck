@@ -23,7 +23,9 @@ NOT_GIVEN = None
 
 
 def _process_chunk(obj) -> MessageChunk:
-    return MessageChunk(content=obj)
+    # print(obj.data.__repr__())
+    # print(obj.event)
+    return MessageChunk(content=obj.data)
 
 
 class ReplicateConnector(IConnector, IChatClient):
