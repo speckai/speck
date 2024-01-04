@@ -487,6 +487,9 @@ class ChatConfig:
             **config._kwargs,
         )
 
+    def __str__(self):
+        return f"ChatConfig(provider={self.provider}, model={self.model}, stream={self.stream}, _log={self._log}, temperature={self.temperature}, max_tokens={self.max_tokens}, top_p={self.top_p}, frequency_penalty={self.frequency_penalty}, presence_penalty={self.presence_penalty}, _kwargs={self._kwargs})"
+
 
 class OpenAIChatConfig(ChatConfig):
     def __init__(

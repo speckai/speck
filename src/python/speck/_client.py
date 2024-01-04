@@ -113,7 +113,7 @@ def _create_connector(
         return connector
     if config.provider == "azure-openai":
         connector = AzureOpenAIConnector(
-            speck_api_key=client.api_key.strip(),
+            speck_api_key=client.api_key,
             client=client,
             api_key=client.api_keys["azure-openai"].strip(),
             **client.azure_openai_config,
@@ -121,14 +121,14 @@ def _create_connector(
         return connector
     if config.provider == "replicate":
         connector = ReplicateConnector(
-            speck_api_key=client.api_key.strip(),
+            speck_api_key=client.api_key,
             client=client,
             api_key=client.api_keys["replicate"].strip(),
         )
         return connector
     if config.provider == "anthropic":
         connector = AnthropicConnector(
-            speck_api_key=client.api_key.strip(),
+            speck_api_key=client.api_key,
             client=client,
             api_key=client.api_keys["anthropic"].strip(),
         )
@@ -182,7 +182,7 @@ class Speck(BaseClient):
         api_keys: dict[str, str] = {},
         endpoint: str = "https://api.speck.chat",
     ):
-        self.api_key = api_key
+        self.api_key = api_key.strip() if api_key is not None else None
         self.api_keys = api_keys
         self.endpoint = endpoint
         self.azure_openai_config = {}
@@ -198,7 +198,7 @@ class AsyncSpeck(BaseClient):
         api_keys: dict[str, str] = {},
         endpoint: str = "https://api.speck.chat",
     ):
-        self.api_key = api_key
+        self.api_key = api_key.strip() if api_key is not None else None
         self.api_keys = api_keys
         self.endpoint = endpoint
         self.azure_openai_config = {}

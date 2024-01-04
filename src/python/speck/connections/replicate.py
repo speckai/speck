@@ -45,6 +45,7 @@ class ReplicateConnector(IConnector, IChatClient):
         super().__init__(
             client=client, provider=Providers.Replicate, speck_api_key=speck_api_key
         )
+        print(api_key.__repr__())
         self.api_key = api_key
         self.message_prefix = message_prefix
         self.message_suffix = message_suffix
@@ -93,7 +94,12 @@ class ReplicateConnector(IConnector, IChatClient):
         #     + self.messages_end
         # )
         system_prompt, user_prompt = self._convert_messages_to_prompt(prompt)
-        config_kwargs["system_prompt"] = system_prompt
+        all_kwargs["system_prompt"] = system_prompt
+
+        # Remove unused kwargs (kept in, these values can cause errors)
+        for arg in ["stream", "provider", "_log", "_kwargs"]:
+            if arg in all_kwargs:
+                del all_kwargs[arg]
 
         if config.stream:
             output = replicate.stream(
@@ -102,11 +108,13 @@ class ReplicateConnector(IConnector, IChatClient):
             )
 
             return Stream(
+                client=self._client,
                 iterator=output,
                 kwargs=self._get_log_kwargs(prompt, None, **all_kwargs),
                 processor=_process_chunk,
             )
         else:
+            print(config)
             output = replicate.run(
                 config.model,
                 input={"prompt": user_prompt, **all_kwargs},
