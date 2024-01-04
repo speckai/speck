@@ -24,6 +24,15 @@ class BaseClient:
     endpoint: str
     azure_openai_config: dict[str, str]
 
+    def add_api_key(self, provider: str, api_key: str):
+        self.api_keys[provider] = api_key
+
+    def add_azure_openai_config(self, azure_endpoint: str, api_version: str):
+        self.azure_openai_config = {
+            "azure_endpoint": azure_endpoint,
+            "api_version": api_version,
+        }
+
 
 class Resource:
     pass
@@ -152,13 +161,13 @@ class AsyncChat(AsyncResource):
     def __init__(self, client: BaseClient):
         self.client = client
 
-    def create(
+    async def create(
         self, *, prompt: PromptTypes, config: ChatConfig = None, **config_kwargs
     ):
         prompt = Prompt.create(prompt)
         config = ChatConfig.create(config, config_kwargs)
         connector = _create_connector(self.client, prompt, config)
-        return connector.achat(prompt, config, **config_kwargs)
+        return await connector.achat(prompt, config, **config_kwargs)
 
     def log(self, messages: Prompt, config: ChatConfig, response: Response):
         config.log_chat(
@@ -180,15 +189,6 @@ class Speck(BaseClient):
 
         self.chat = Chat(self)
         self.logger = Logger(self)
-
-    def add_api_key(self, provider: str, api_key: str):
-        self.api_keys[provider] = api_key
-
-    def add_azure_openai_config(self, azure_endpoint: str, api_version: str):
-        self.azure_openai_config = {
-            "azure_endpoint": azure_endpoint,
-            "api_version": api_version,
-        }
 
 
 class AsyncSpeck(BaseClient):

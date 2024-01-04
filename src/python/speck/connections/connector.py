@@ -30,7 +30,8 @@ class IConnector(ABC):
 
     def log(self, *, prompt: Prompt, response: Response, **kwargs):
         ChatLogger.log(
-            self._client.endpoint, **self._get_log_kwargs(prompt, response, **kwargs)
+            endpoint=self._client.endpoint,
+            **self._get_log_kwargs(prompt, response, **kwargs),
         )
 
     def __str__(self):
