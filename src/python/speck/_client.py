@@ -135,8 +135,8 @@ class Chat(SyncResource):
         self, *, prompt: PromptTypes, config: ChatConfig = None, **config_kwargs
     ):
         prompt = Prompt.create(prompt)
-        config = ChatConfig.create(config)
-        connector = _create_connector(self.client, prompt, config, **config_kwargs)
+        config = ChatConfig.create(config, config_kwargs)
+        connector = _create_connector(self.client, prompt, config)
         return connector.chat(prompt, config, **config_kwargs)
 
     def log(
@@ -156,8 +156,8 @@ class AsyncChat(AsyncResource):
         self, *, prompt: PromptTypes, config: ChatConfig = None, **config_kwargs
     ):
         prompt = Prompt.create(prompt)
-        config = ChatConfig.create(config)
-        connector = _create_connector(self.client, prompt, config, **config_kwargs)
+        config = ChatConfig.create(config, config_kwargs)
+        connector = _create_connector(self.client, prompt, config)
         return connector.achat(prompt, config, **config_kwargs)
 
     def log(self, messages: Prompt, config: ChatConfig, response: Response):

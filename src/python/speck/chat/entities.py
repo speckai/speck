@@ -433,11 +433,17 @@ class ChatConfig:
         self._kwargs = config_kwargs
 
     @classmethod
-    def create(cls, config: ChatConfigTypes) -> "ChatConfig":
+    def create(cls, config: ChatConfigTypes, kwargs: dict = None) -> "ChatConfig":
         if isinstance(config, cls):
-            return config
+            if kwargs is not None:
+                # config._kwargs = {**config._kwargs, **kwargs}
+                return cls(**{**config.__dict__, **kwargs})
+            else:
+                return config
         elif isinstance(config, dict):
             return cls(**config)
+        elif kwargs:
+            return cls(**kwargs)
         else:
             raise NotImplementedError
 
