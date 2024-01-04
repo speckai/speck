@@ -128,7 +128,7 @@ def _create_connector(
 
 
 class Chat(SyncResource):
-    def __init__(self, client: "Speck"):
+    def __init__(self, client: BaseClient):
         self.client = client
 
     def create(
@@ -147,7 +147,7 @@ class Chat(SyncResource):
 
 
 class AsyncChat(AsyncResource):
-    def __init__(self, client: "BaseClient"):
+    def __init__(self, client: BaseClient):
         self.client = client
 
     def create(
