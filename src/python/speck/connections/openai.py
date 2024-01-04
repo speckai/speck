@@ -9,7 +9,7 @@ Features:
 """
 from typing import Union
 
-from openai import OpenAI
+from openai import AsyncOpenAI, OpenAI
 from openai.types.chat import ChatCompletion
 
 from ..chat.entities import (
@@ -43,11 +43,16 @@ class OpenAIResponse(Response):
 
 
 class OpenAIConnector(IConnector, IChatClient):
-    def __init__(self, client: "Speck" = None, api_key: str = None, speck_api_key: str = None):
-        super().__init__(client=client, provider=Providers.OpenAI, speck_api_key=speck_api_key)
+    def __init__(
+        self, client: "Speck" = None, api_key: str = None, speck_api_key: str = None
+    ):
+        super().__init__(
+            client=client, provider=Providers.OpenAI, speck_api_key=speck_api_key
+        )
         if api_key is not None:
             self.api_key = api_key
             self.client = OpenAI(api_key=self.api_key)
+            self.async_client = AsyncOpenAI(api_key=self.api_key)
 
     def _convert_messages_to_prompt(self, messages: Prompt) -> list[dict[str, str]]:
         return [{"role": msg.role, "content": msg.content} for msg in messages.messages]
@@ -80,6 +85,47 @@ class OpenAIConnector(IConnector, IChatClient):
             output = self.client.chat.completions.create(
                 messages=input,
                 **filter_kwargs(self.client.chat.completions.create, all_kwargs),
+            )
+
+            if config._log:
+                self.log(
+                    prompt=prompt,
+                    response=OpenAIResponse(output),
+                    **all_kwargs,
+                )
+                # Todo: set config= as param
+
+        return OpenAIResponse(output)
+
+    async def achat(
+        self, prompt: Prompt, config: ChatConfig = NOT_GIVEN, **config_kwargs
+    ) -> Union[OpenAIResponse, Stream]:
+        if config is NOT_GIVEN:
+            config = ChatConfig(**config_kwargs)
+            # Todo: convert to default config based on class param
+
+        # Remove all None values
+        all_kwargs = {k: v for k, v in vars(config).items() if v is not None}
+
+        input = self._convert_messages_to_prompt(prompt)
+
+        if config.stream:
+            output_stream = await self.async_client.chat.completions.create(
+                messages=input,
+                **filter_kwargs(self.async_client.chat.completions.create, all_kwargs),
+            )
+
+            # Todo: async iterator support
+            return Stream(
+                client=self._client,
+                iterator=output_stream,
+                kwargs=self._get_log_kwargs(prompt, None, **all_kwargs),
+                processor=_process_chunk,
+            )
+        else:
+            output = await self.async_client.chat.completions.create(
+                messages=input,
+                **filter_kwargs(self.async_client.chat.completions.create, all_kwargs),
             )
 
             if config._log:

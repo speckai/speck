@@ -4,6 +4,7 @@ from abc import ABC, abstractmethod
 from typing import Any, Callable, Iterator, Literal, Optional, Tuple, Union
 
 from openai._types import NotGiven
+
 # from dataclasses import dataclass
 from pydantic import BaseModel
 
@@ -432,11 +433,17 @@ class ChatConfig:
         self._kwargs = config_kwargs
 
     @classmethod
-    def create(cls, config: ChatConfigTypes) -> "ChatConfig":
+    def create(cls, config: ChatConfigTypes, kwargs: dict = None) -> "ChatConfig":
         if isinstance(config, cls):
-            return config
+            if kwargs is not None:
+                # config._kwargs = {**config._kwargs, **kwargs}
+                return cls(**{**config.__dict__, **kwargs})
+            else:
+                return config
         elif isinstance(config, dict):
             return cls(**config)
+        elif kwargs:
+            return cls(**kwargs)
         else:
             raise NotImplementedError
 
@@ -527,7 +534,16 @@ class IChatClient(ABC):
     @abstractmethod
     def chat(
         self,
-        prompt: Prompt,
+        prompt: PromptTypes,
+        config: Union[ChatConfig, NotGiven] = NOT_GIVEN,
+        **config_kwargs,
+    ) -> Union[Response, Stream]:
+        pass
+
+    @abstractmethod
+    async def achat(
+        self,
+        prompt: PromptTypes,
         config: Union[ChatConfig, NotGiven] = NOT_GIVEN,
         **config_kwargs,
     ) -> Union[Response, Stream]:

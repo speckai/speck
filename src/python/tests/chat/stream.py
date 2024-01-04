@@ -5,7 +5,7 @@ import sys
 sys.path.append(
     (os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 )
-from speck import ChatConfig, Message, Prompt, Response, Speck, Stream
+from speck import Message, Prompt, Response, Speck
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -21,7 +21,6 @@ AZURE_OPENAI_API_KEY = os.getenv("AZURE_OPENAI_API_KEY")
 REPLICATE_API_TOKEN = os.getenv("REPLICATE_API_TOKEN")
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
 SPECK_API_KEY = os.getenv("SPECK_API_KEY")
-print(SPECK_API_KEY)
 
 client = Speck(
     api_key=SPECK_API_KEY,
@@ -49,7 +48,7 @@ response: Response = client.chat.create(
     # model="anthropic:claude-2",
     # model="replicate:meta/llama-2-70b-chat:02e509c789964a7ea8736978a43525956ef40397be9033abf9fd2badfe68c9e3",
     temperature=1.0,
-    stream=True,
+    stream=False,
     _log=True,
 )
 

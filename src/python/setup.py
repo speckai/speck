@@ -18,6 +18,7 @@ install_requires = [
     "replicate",
     "requests",
     "pydantic",
+    "httpx",
 ]
 
 

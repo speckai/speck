@@ -8,8 +8,14 @@ from typing import Union
 
 import replicate
 
-from ..chat.entities import (ChatConfig, IChatClient, MessageChunk, Prompt,
-                             Response, Stream)
+from ..chat.entities import (
+    ChatConfig,
+    IChatClient,
+    MessageChunk,
+    Prompt,
+    Response,
+    Stream,
+)
 from .connector import IConnector
 from .providers import Providers
 
@@ -36,7 +42,9 @@ class ReplicateConnector(IConnector, IChatClient):
     ):
         # Todo: support custom replicate model mappings
         # By default, built for meta/llama-2-70b
-        super().__init__(client=client, provider=Providers.Replicate, speck_api_key=speck_api_key)
+        super().__init__(
+            client=client, provider=Providers.Replicate, speck_api_key=speck_api_key
+        )
         self.api_key = api_key
         self.message_prefix = message_prefix
         self.message_suffix = message_suffix
@@ -87,18 +95,86 @@ class ReplicateConnector(IConnector, IChatClient):
         system_prompt, user_prompt = self._convert_messages_to_prompt(prompt)
         config_kwargs["system_prompt"] = system_prompt
 
-        output = replicate.run(
-            config.model,
-            input={"prompt": user_prompt, **all_kwargs},
-        )
-
         if config.stream:
+            output = replicate.stream(
+                config.model,
+                input={"prompt": user_prompt, **all_kwargs},
+            )
+
             return Stream(
                 iterator=output,
                 kwargs=self._get_log_kwargs(prompt, None, **all_kwargs),
                 processor=_process_chunk,
             )
         else:
+            output = replicate.run(
+                config.model,
+                input={"prompt": user_prompt, **all_kwargs},
+            )
+
+            content = "".join(item for item in output)
+
+            if config._log:
+                self.log(
+                    prompt=prompt,
+                    response=Response(content=content),
+                    **all_kwargs,
+                )
+
+            return Response(content=content)
+
+    async def achat(
+        self, prompt: Prompt, config: ChatConfig = NOT_GIVEN, **config_kwargs
+    ) -> Union[Response, Stream]:
+        # all_kwargs = {
+        #     **config_kwargs,
+        #     "temperature": max(temperature, 0.01) if temperature is not None else None,
+        #     "max_new_tokens": max_tokens,
+        #     "top_p": top_p,
+        #     "repetition_penalty": max(presence_penalty, 0.01)
+        #     if presence_penalty
+        #     else None,
+        #     "top_k": top_k,
+        #     "test": test,
+        # }
+        mapped_args = {
+            "repetition_penalty": "presence_penalty",
+        }
+        all_kwargs = {
+            mapped_args.get(k, k): v for k, v in vars(config).items() if v is not None
+        }
+        if all_kwargs.get("temperature") < 0.01:
+            all_kwargs["temperature"] = 0.01
+
+        # input = (
+        #     "".join(
+        #         self.message_prefix.format(role=msg.role)
+        #         + msg.content
+        #         + self.message_suffix.format(role=msg.role)
+        #         for msg in prompt.messages
+        #     )
+        #     + self.messages_end
+        # )
+        system_prompt, user_prompt = self._convert_messages_to_prompt(prompt)
+        config_kwargs["system_prompt"] = system_prompt
+
+        if config.stream:
+            output = replicate.async_stream(
+                config.model,
+                input={"prompt": user_prompt, **all_kwargs},
+            )
+
+            return Stream(
+                iterator=output,
+                kwargs=self._get_log_kwargs(prompt, None, **all_kwargs),
+                processor=_process_chunk,
+            )
+        else:
+            output = replicate.async_run(
+                config.model,
+                input={"prompt": user_prompt, **all_kwargs},
+            )
+
             content = "".join(item for item in output)
 
             if config._log:
