@@ -7,6 +7,7 @@ Features:
 import json
 from typing import Union
 
+import httpx
 import requests
 
 from ..chat.entities import (
@@ -137,7 +138,7 @@ class AnthropicConnector(IConnector, IChatClient):
 
             return AnthropicResponse(output)
 
-    def achat(
+    async def achat(
         self, prompt: Prompt, config: ChatConfig = NOT_GIVEN, **config_kwargs
     ) -> Union[AnthropicResponse, Stream]:
         if config is NOT_GIVEN:
@@ -162,25 +163,26 @@ class AnthropicConnector(IConnector, IChatClient):
             "stream": config.stream,
         }
 
-        response = requests.post(
-            self.url, headers=headers, data=json.dumps(data), stream=config.stream
-        )
-
-        if config.stream:
-            return Stream(
-                client=self._client,
-                iterator=AnthropicStream(response.iter_lines()),
-                kwargs=self._get_log_kwargs(prompt, None, **all_kwargs),
-                processor=_process_chunk,
+        with httpx.AsyncClient() as client:
+            response = await client.post(
+                self.url, headers=headers, data=json.dumps(data), stream=config.stream
             )
-        else:
-            output = response.json()
-            if config._log:
-                self.log(
-                    prompt=prompt,
-                    response=AnthropicResponse(output),
-                    **all_kwargs,
-                )
-                # Todo: set config= as param
 
-            return AnthropicResponse(output)
+            if config.stream:
+                return Stream(
+                    client=self._client,
+                    iterator=AnthropicStream(response.iter_lines()),
+                    kwargs=self._get_log_kwargs(prompt, None, **all_kwargs),
+                    processor=_process_chunk,
+                )
+            else:
+                output = response.json()
+                if config._log:
+                    self.log(
+                        prompt=prompt,
+                        response=AnthropicResponse(output),
+                        **all_kwargs,
+                    )
+                    # Todo: set config= as param
+
+                return AnthropicResponse(output)

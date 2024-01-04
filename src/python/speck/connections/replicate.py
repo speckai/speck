@@ -95,18 +95,23 @@ class ReplicateConnector(IConnector, IChatClient):
         system_prompt, user_prompt = self._convert_messages_to_prompt(prompt)
         config_kwargs["system_prompt"] = system_prompt
 
-        output = replicate.run(
-            config.model,
-            input={"prompt": user_prompt, **all_kwargs},
-        )
-
         if config.stream:
+            output = replicate.stream(
+                config.model,
+                input={"prompt": user_prompt, **all_kwargs},
+            )
+
             return Stream(
                 iterator=output,
                 kwargs=self._get_log_kwargs(prompt, None, **all_kwargs),
                 processor=_process_chunk,
             )
         else:
+            output = replicate.run(
+                config.model,
+                input={"prompt": user_prompt, **all_kwargs},
+            )
+
             content = "".join(item for item in output)
 
             if config._log:
@@ -153,18 +158,23 @@ class ReplicateConnector(IConnector, IChatClient):
         system_prompt, user_prompt = self._convert_messages_to_prompt(prompt)
         config_kwargs["system_prompt"] = system_prompt
 
-        output = replicate.run(
-            config.model,
-            input={"prompt": user_prompt, **all_kwargs},
-        )
-
         if config.stream:
+            output = replicate.async_stream(
+                config.model,
+                input={"prompt": user_prompt, **all_kwargs},
+            )
+
             return Stream(
                 iterator=output,
                 kwargs=self._get_log_kwargs(prompt, None, **all_kwargs),
                 processor=_process_chunk,
             )
         else:
+            output = replicate.async_run(
+                config.model,
+                input={"prompt": user_prompt, **all_kwargs},
+            )
+
             content = "".join(item for item in output)
 
             if config._log:
