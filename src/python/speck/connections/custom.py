@@ -11,3 +11,6 @@ class CustomProviderConnector(IConnector, IChatClient):
 
     def chat(self, prompt: Prompt, model: str, **config_kwargs) -> Response:
         return Response(f"{self.message_prefix} {prompt} {self.message_suffix}")
+
+    def achat(self, prompt: Prompt, model: str, **config_kwargs) -> Response:
+        return Response(f"{self.message_prefix} {prompt} {self.message_suffix}")

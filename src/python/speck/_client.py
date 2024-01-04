@@ -1,5 +1,6 @@
 from typing import Tuple, Union
 
+from .chat.client import IChatClient
 from .chat.entities import (
     ChatConfig,
     ChatConfigTypes,
@@ -71,9 +72,7 @@ class Logger(SyncResource):  # App logger
 
 def _create_connector(
     client: BaseClient, prompt: PromptTypes, config: ChatConfig = None, **config_kwargs
-):
-    prompt = Prompt.create(prompt)
-
+) -> IChatClient:
     if config is None:
         config = ChatConfig(**config_kwargs)
         # Todo: convert to default config based on class param
@@ -102,7 +101,7 @@ def _create_connector(
         connector = OpenAIConnector(
             client=client, api_key=client.api_keys["openai"].strip()
         )
-        return connector.chat(prompt, config, **config_kwargs)
+        return connector
     if config.provider == "azure-openai":
         connector = AzureOpenAIConnector(
             speck_api_key=client.api_key.strip(),
@@ -110,20 +109,21 @@ def _create_connector(
             api_key=client.api_keys["azure-openai"].strip(),
             **client.azure_openai_config,
         )
-        return connector.chat(prompt, config, **config_kwargs)
+        return connector
     if config.provider == "replicate":
         connector = ReplicateConnector(
             speck_api_key=client.api_key.strip(),
             client=client,
             api_key=client.api_keys["replicate"].strip(),
         )
-        return connector.chat(prompt, config, **config_kwargs)
+        return connector
     if config.provider == "anthropic":
         connector = AnthropicConnector(
             speck_api_key=client.api_key.strip(),
             client=client,
             api_key=client.api_keys["anthropic"].strip(),
         )
+        return connector
     raise ValueError("Provider not found")
 
 
@@ -134,6 +134,8 @@ class Chat(SyncResource):
     def create(
         self, *, prompt: PromptTypes, config: ChatConfig = None, **config_kwargs
     ):
+        prompt = Prompt.create(prompt)
+        config = ChatConfig.create(config)
         connector = _create_connector(self.client, prompt, config, **config_kwargs)
         return connector.chat(prompt, config, **config_kwargs)
 
@@ -153,8 +155,10 @@ class AsyncChat(AsyncResource):
     def create(
         self, *, prompt: PromptTypes, config: ChatConfig = None, **config_kwargs
     ):
+        prompt = Prompt.create(prompt)
+        config = ChatConfig.create(config)
         connector = _create_connector(self.client, prompt, config, **config_kwargs)
-        return connector.chat(prompt, config, **config_kwargs)
+        return connector.achat(prompt, config, **config_kwargs)
 
     def log(self, messages: Prompt, config: ChatConfig, response: Response):
         config.log_chat(

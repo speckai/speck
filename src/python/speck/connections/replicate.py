@@ -8,8 +8,14 @@ from typing import Union
 
 import replicate
 
-from ..chat.entities import (ChatConfig, IChatClient, MessageChunk, Prompt,
-                             Response, Stream)
+from ..chat.entities import (
+    ChatConfig,
+    IChatClient,
+    MessageChunk,
+    Prompt,
+    Response,
+    Stream,
+)
 from .connector import IConnector
 from .providers import Providers
 
@@ -36,7 +42,9 @@ class ReplicateConnector(IConnector, IChatClient):
     ):
         # Todo: support custom replicate model mappings
         # By default, built for meta/llama-2-70b
-        super().__init__(client=client, provider=Providers.Replicate, speck_api_key=speck_api_key)
+        super().__init__(
+            client=client, provider=Providers.Replicate, speck_api_key=speck_api_key
+        )
         self.api_key = api_key
         self.message_prefix = message_prefix
         self.message_suffix = message_suffix
@@ -52,8 +60,12 @@ class ReplicateConnector(IConnector, IChatClient):
         )
         return system_prompt, prompt
 
-    def chat(
-        self, prompt: Prompt, config: ChatConfig = NOT_GIVEN, **config_kwargs
+    def _process(
+        self,
+        prompt: Prompt,
+        config: ChatConfig = NOT_GIVEN,
+        _speck_async=False,
+        **config_kwargs
     ) -> Union[Response, Stream]:
         # all_kwargs = {
         #     **config_kwargs,
@@ -109,3 +121,13 @@ class ReplicateConnector(IConnector, IChatClient):
                 )
 
             return Response(content=content)
+
+    def chat(
+        self, prompt: Prompt, config: ChatConfig = NOT_GIVEN, **config_kwargs
+    ) -> Union[Response, Stream]:
+        return self._process(prompt, config, _speck_async=False, **config_kwargs)
+
+    def achat(
+        self, prompt: Prompt, config: ChatConfig = NOT_GIVEN, **config_kwargs
+    ) -> Union[Response, Stream]:
+        return self._process(prompt, config, _speck_async=True, **config_kwargs)

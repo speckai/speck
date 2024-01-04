@@ -43,8 +43,12 @@ class OpenAIResponse(Response):
 
 
 class OpenAIConnector(IConnector, IChatClient):
-    def __init__(self, client: "Speck" = None, api_key: str = None, speck_api_key: str = None):
-        super().__init__(client=client, provider=Providers.OpenAI, speck_api_key=speck_api_key)
+    def __init__(
+        self, client: "Speck" = None, api_key: str = None, speck_api_key: str = None
+    ):
+        super().__init__(
+            client=client, provider=Providers.OpenAI, speck_api_key=speck_api_key
+        )
         if api_key is not None:
             self.api_key = api_key
             self.client = OpenAI(api_key=self.api_key)
@@ -52,8 +56,12 @@ class OpenAIConnector(IConnector, IChatClient):
     def _convert_messages_to_prompt(self, messages: Prompt) -> list[dict[str, str]]:
         return [{"role": msg.role, "content": msg.content} for msg in messages.messages]
 
-    def chat(
-        self, prompt: Prompt, config: ChatConfig = NOT_GIVEN, **config_kwargs
+    def _process(
+        self,
+        prompt: Prompt,
+        config: ChatConfig = NOT_GIVEN,
+        _speck_async=False,
+        **config_kwargs
     ) -> Union[OpenAIResponse, Stream]:
         if config is NOT_GIVEN:
             config = ChatConfig(**config_kwargs)
@@ -91,3 +99,13 @@ class OpenAIConnector(IConnector, IChatClient):
                 # Todo: set config= as param
 
         return OpenAIResponse(output)
+
+    def chat(
+        self, prompt: Prompt, config: ChatConfig = NOT_GIVEN, **config_kwargs
+    ) -> Union[OpenAIResponse, Stream]:
+        return self._process(prompt, config, _speck_async=False, **config_kwargs)
+
+    def achat(
+        self, prompt: Prompt, config: ChatConfig = NOT_GIVEN, **config_kwargs
+    ) -> Union[OpenAIResponse, Stream]:
+        return self._process(prompt, config, _speck_async=True, **config_kwargs)

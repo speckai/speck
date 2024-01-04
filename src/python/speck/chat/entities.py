@@ -4,6 +4,7 @@ from abc import ABC, abstractmethod
 from typing import Any, Callable, Iterator, Literal, Optional, Tuple, Union
 
 from openai._types import NotGiven
+
 # from dataclasses import dataclass
 from pydantic import BaseModel
 
@@ -527,7 +528,16 @@ class IChatClient(ABC):
     @abstractmethod
     def chat(
         self,
-        prompt: Prompt,
+        prompt: PromptTypes,
+        config: Union[ChatConfig, NotGiven] = NOT_GIVEN,
+        **config_kwargs,
+    ) -> Union[Response, Stream]:
+        pass
+
+    @abstractmethod
+    async def achat(
+        self,
+        prompt: PromptTypes,
         config: Union[ChatConfig, NotGiven] = NOT_GIVEN,
         **config_kwargs,
     ) -> Union[Response, Stream]:

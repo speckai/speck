@@ -89,8 +89,12 @@ class AnthropicConnector(IConnector, IChatClient):
         res += "Assistant:"
         return res
 
-    def chat(
-        self, prompt: Prompt, config: ChatConfig = NOT_GIVEN, **config_kwargs
+    def _process(
+        self,
+        prompt: Prompt,
+        config: ChatConfig = NOT_GIVEN,
+        _speck_async=False,
+        **config_kwargs,
     ) -> Union[AnthropicResponse, Stream]:
         if config is NOT_GIVEN:
             config = ChatConfig(**config_kwargs)
@@ -136,3 +140,13 @@ class AnthropicConnector(IConnector, IChatClient):
                 # Todo: set config= as param
 
             return AnthropicResponse(output)
+
+    def chat(
+        self, prompt: Prompt, config: ChatConfig = NOT_GIVEN, **config_kwargs
+    ) -> Union[AnthropicResponse, Stream]:
+        return self._process(prompt, config, _speck_async=False, **config_kwargs)
+
+    def achat(
+        self, prompt: Prompt, config: ChatConfig = NOT_GIVEN, **config_kwargs
+    ) -> Union[AnthropicResponse, Stream]:
+        return self._process(prompt, config, _speck_async=True, **config_kwargs)
