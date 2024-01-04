@@ -1,20 +1,7 @@
-def db_write_format():
-    return {
-        "type": "llm",
-        "userId": "test",
-        "message": "test",
-        "timestamp": "test",
-        "input": "test",
-        "output": "test",
-    }
+def db_get_format(kwargs):
+    kwargs, version = db_convert_format(kwargs)
+    return kwargs
 
 
-def db_read_format():
-    return {
-        "type": "llm",
-        "userId": "test",
-        "message": "test",
-        "timestamp": "test",
-        "input": "test",
-        "output": "test",
-    }
+def db_convert_format(kwargs) -> (dict, str):
+    return kwargs, "v1"
