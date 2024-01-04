@@ -89,12 +89,8 @@ class AnthropicConnector(IConnector, IChatClient):
         res += "Assistant:"
         return res
 
-    def _process(
-        self,
-        prompt: Prompt,
-        config: ChatConfig = NOT_GIVEN,
-        _speck_async=False,
-        **config_kwargs,
+    def chat(
+        self, prompt: Prompt, config: ChatConfig = NOT_GIVEN, **config_kwargs
     ) -> Union[AnthropicResponse, Stream]:
         if config is NOT_GIVEN:
             config = ChatConfig(**config_kwargs)
@@ -141,12 +137,50 @@ class AnthropicConnector(IConnector, IChatClient):
 
             return AnthropicResponse(output)
 
-    def chat(
-        self, prompt: Prompt, config: ChatConfig = NOT_GIVEN, **config_kwargs
-    ) -> Union[AnthropicResponse, Stream]:
-        return self._process(prompt, config, _speck_async=False, **config_kwargs)
-
     def achat(
         self, prompt: Prompt, config: ChatConfig = NOT_GIVEN, **config_kwargs
     ) -> Union[AnthropicResponse, Stream]:
-        return self._process(prompt, config, _speck_async=True, **config_kwargs)
+        if config is NOT_GIVEN:
+            config = ChatConfig(**config_kwargs)
+            # Todo: convert to default config based on class param
+
+        # Remove all None values
+        all_kwargs = {k: v for k, v in vars(config).items() if v is not None}
+
+        input = self._convert_messages_to_prompt(prompt)
+
+        headers = {
+            "anthropic-version": config.get("anthropic_version", "2023-06-01"),
+            "content-type": "application/json",
+            "x-api-key": self.api_key,
+        }
+
+        data = {
+            "model": config.model,
+            "prompt": input,
+            "max_tokens_to_sample": config.max_tokens or 100,
+            "stream": config.stream,
+        }
+
+        response = requests.post(
+            self.url, headers=headers, data=json.dumps(data), stream=config.stream
+        )
+
+        if config.stream:
+            return Stream(
+                client=self._client,
+                iterator=AnthropicStream(response.iter_lines()),
+                kwargs=self._get_log_kwargs(prompt, None, **all_kwargs),
+                processor=_process_chunk,
+            )
+        else:
+            output = response.json()
+            if config._log:
+                self.log(
+                    prompt=prompt,
+                    response=AnthropicResponse(output),
+                    **all_kwargs,
+                )
+                # Todo: set config= as param
+
+            return AnthropicResponse(output)

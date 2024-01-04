@@ -60,12 +60,8 @@ class ReplicateConnector(IConnector, IChatClient):
         )
         return system_prompt, prompt
 
-    def _process(
-        self,
-        prompt: Prompt,
-        config: ChatConfig = NOT_GIVEN,
-        _speck_async=False,
-        **config_kwargs
+    def chat(
+        self, prompt: Prompt, config: ChatConfig = NOT_GIVEN, **config_kwargs
     ) -> Union[Response, Stream]:
         # all_kwargs = {
         #     **config_kwargs,
@@ -122,12 +118,60 @@ class ReplicateConnector(IConnector, IChatClient):
 
             return Response(content=content)
 
-    def chat(
+    async def achat(
         self, prompt: Prompt, config: ChatConfig = NOT_GIVEN, **config_kwargs
     ) -> Union[Response, Stream]:
-        return self._process(prompt, config, _speck_async=False, **config_kwargs)
+        # all_kwargs = {
+        #     **config_kwargs,
+        #     "temperature": max(temperature, 0.01) if temperature is not None else None,
+        #     "max_new_tokens": max_tokens,
+        #     "top_p": top_p,
+        #     "repetition_penalty": max(presence_penalty, 0.01)
+        #     if presence_penalty
+        #     else None,
+        #     "top_k": top_k,
+        #     "test": test,
+        # }
+        mapped_args = {
+            "repetition_penalty": "presence_penalty",
+        }
+        all_kwargs = {
+            mapped_args.get(k, k): v for k, v in vars(config).items() if v is not None
+        }
+        if all_kwargs.get("temperature") < 0.01:
+            all_kwargs["temperature"] = 0.01
 
-    def achat(
-        self, prompt: Prompt, config: ChatConfig = NOT_GIVEN, **config_kwargs
-    ) -> Union[Response, Stream]:
-        return self._process(prompt, config, _speck_async=True, **config_kwargs)
+        # input = (
+        #     "".join(
+        #         self.message_prefix.format(role=msg.role)
+        #         + msg.content
+        #         + self.message_suffix.format(role=msg.role)
+        #         for msg in prompt.messages
+        #     )
+        #     + self.messages_end
+        # )
+        system_prompt, user_prompt = self._convert_messages_to_prompt(prompt)
+        config_kwargs["system_prompt"] = system_prompt
+
+        output = replicate.run(
+            config.model,
+            input={"prompt": user_prompt, **all_kwargs},
+        )
+
+        if config.stream:
+            return Stream(
+                iterator=output,
+                kwargs=self._get_log_kwargs(prompt, None, **all_kwargs),
+                processor=_process_chunk,
+            )
+        else:
+            content = "".join(item for item in output)
+
+            if config._log:
+                self.log(
+                    prompt=prompt,
+                    response=Response(content=content),
+                    **all_kwargs,
+                )
+
+            return Response(content=content)

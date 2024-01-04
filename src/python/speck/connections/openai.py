@@ -56,12 +56,8 @@ class OpenAIConnector(IConnector, IChatClient):
     def _convert_messages_to_prompt(self, messages: Prompt) -> list[dict[str, str]]:
         return [{"role": msg.role, "content": msg.content} for msg in messages.messages]
 
-    def _process(
-        self,
-        prompt: Prompt,
-        config: ChatConfig = NOT_GIVEN,
-        _speck_async=False,
-        **config_kwargs
+    def chat(
+        self, prompt: Prompt, config: ChatConfig = NOT_GIVEN, **config_kwargs
     ) -> Union[OpenAIResponse, Stream]:
         if config is NOT_GIVEN:
             config = ChatConfig(**config_kwargs)
@@ -100,12 +96,42 @@ class OpenAIConnector(IConnector, IChatClient):
 
         return OpenAIResponse(output)
 
-    def chat(
+    async def achat(
         self, prompt: Prompt, config: ChatConfig = NOT_GIVEN, **config_kwargs
     ) -> Union[OpenAIResponse, Stream]:
-        return self._process(prompt, config, _speck_async=False, **config_kwargs)
+        if config is NOT_GIVEN:
+            config = ChatConfig(**config_kwargs)
+            # Todo: convert to default config based on class param
 
-    def achat(
-        self, prompt: Prompt, config: ChatConfig = NOT_GIVEN, **config_kwargs
-    ) -> Union[OpenAIResponse, Stream]:
-        return self._process(prompt, config, _speck_async=True, **config_kwargs)
+        # Remove all None values
+        all_kwargs = {k: v for k, v in vars(config).items() if v is not None}
+
+        input = self._convert_messages_to_prompt(prompt)
+
+        if config.stream:
+            output_stream = self.client.chat.completions.create(
+                messages=input,
+                **filter_kwargs(self.client.chat.completions.create, all_kwargs),
+            )
+
+            return Stream(
+                client=self._client,
+                iterator=output_stream,
+                kwargs=self._get_log_kwargs(prompt, None, **all_kwargs),
+                processor=_process_chunk,
+            )
+        else:
+            output = self.client.chat.completions.create(
+                messages=input,
+                **filter_kwargs(self.client.chat.completions.create, all_kwargs),
+            )
+
+            if config._log:
+                self.log(
+                    prompt=prompt,
+                    response=OpenAIResponse(output),
+                    **all_kwargs,
+                )
+                # Todo: set config= as param
+
+        return OpenAIResponse(output)
