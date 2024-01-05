@@ -7,6 +7,7 @@ Features:
 from typing import Union
 
 import replicate
+from replicate import Client
 
 from ..chat.entities import (
     ChatConfig,
@@ -48,11 +49,11 @@ class ReplicateConnector(IConnector, IChatClient):
         super().__init__(
             client=client, provider=Providers.Replicate, speck_api_key=speck_api_key
         )
-        print(api_key.__repr__())
         self.api_key = api_key
         self.message_prefix = message_prefix
         self.message_suffix = message_suffix
         self.messages_end = messages_end
+        self.replicate_client = Client(api_token=api_key)
 
     def _convert_messages_to_prompt(self, messages: Prompt) -> list[dict[str, str]]:
         # Return tuple of system_prompt, prompt
@@ -64,9 +65,7 @@ class ReplicateConnector(IConnector, IChatClient):
         )
         return system_prompt, prompt
 
-    def chat(
-        self, prompt: Prompt, config: ChatConfig = NOT_GIVEN, **config_kwargs
-    ) -> Union[Response, Stream]:
+    def _process_args(self, prompt: Prompt, config: ChatConfig, **config_kwargs):
         # all_kwargs = {
         #     **config_kwargs,
         #     "temperature": max(temperature, 0.01) if temperature is not None else None,
@@ -104,8 +103,17 @@ class ReplicateConnector(IConnector, IChatClient):
             if arg in all_kwargs:
                 del all_kwargs[arg]
 
+        return system_prompt, user_prompt, all_kwargs
+
+    def chat(
+        self, prompt: Prompt, config: ChatConfig = NOT_GIVEN, **config_kwargs
+    ) -> Union[Response, Stream]:
+        system_prompt, user_prompt, all_kwargs = self._process_args(
+            prompt, config, **config_kwargs
+        )
+
         if config.stream:
-            output = replicate.stream(
+            output = self.replicate_client.stream(
                 config.model,
                 input={"prompt": user_prompt, **all_kwargs},
             )
@@ -117,8 +125,7 @@ class ReplicateConnector(IConnector, IChatClient):
                 processor=_process_chunk,
             )
         else:
-            print(config)
-            output = replicate.run(
+            output = self.replicate_client.run(
                 config.model,
                 input={"prompt": user_prompt, **all_kwargs},
             )
@@ -137,40 +144,12 @@ class ReplicateConnector(IConnector, IChatClient):
     async def achat(
         self, prompt: Prompt, config: ChatConfig = NOT_GIVEN, **config_kwargs
     ) -> Union[Response, Stream]:
-        # all_kwargs = {
-        #     **config_kwargs,
-        #     "temperature": max(temperature, 0.01) if temperature is not None else None,
-        #     "max_new_tokens": max_tokens,
-        #     "top_p": top_p,
-        #     "repetition_penalty": max(presence_penalty, 0.01)
-        #     if presence_penalty
-        #     else None,
-        #     "top_k": top_k,
-        #     "test": test,
-        # }
-        mapped_args = {
-            "repetition_penalty": "presence_penalty",
-        }
-        all_kwargs = {
-            mapped_args.get(k, k): v for k, v in vars(config).items() if v is not None
-        }
-        if all_kwargs.get("temperature") < 0.01:
-            all_kwargs["temperature"] = 0.01
-
-        # input = (
-        #     "".join(
-        #         self.message_prefix.format(role=msg.role)
-        #         + msg.content
-        #         + self.message_suffix.format(role=msg.role)
-        #         for msg in prompt.messages
-        #     )
-        #     + self.messages_end
-        # )
-        system_prompt, user_prompt = self._convert_messages_to_prompt(prompt)
-        config_kwargs["system_prompt"] = system_prompt
+        system_prompt, user_prompt, all_kwargs = self._process_args(
+            prompt, config, **config_kwargs
+        )
 
         if config.stream:
-            output = replicate.async_stream(
+            output = await self.replicate_client.async_stream(
                 config.model,
                 input={"prompt": user_prompt, **all_kwargs},
             )
@@ -181,7 +160,7 @@ class ReplicateConnector(IConnector, IChatClient):
                 processor=_process_chunk,
             )
         else:
-            output = replicate.async_run(
+            output = await self.replicate_client.async_run(
                 config.model,
                 input={"prompt": user_prompt, **all_kwargs},
             )
