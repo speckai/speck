@@ -6,7 +6,7 @@ from typing import Any, Callable, Iterator
 from openai import OpenAI as _OpenAI
 from openai import Stream as _Stream
 
-from .. import ChatLogger
+from .. import ChatLogger, ProvidersList, Speck
 from ..chat.entities import ChatConfig, OpenAIChatConfig, Prompt, Response, Stream
 from ..util._wrapper import wrap_method
 
@@ -111,7 +111,7 @@ def chat_wrapper(self: OpenAIWrapper, original_method, *args, **kwargs):
     Returns:
         The result of the original method call.
     """
-    model = kwargs.get("model", None)
+    model: str = kwargs.get("model", None)
     stream = kwargs.get("stream", False)
     messages = kwargs.get("messages", None)
     prompt = Prompt.from_openai(messages)
@@ -119,8 +119,13 @@ def chat_wrapper(self: OpenAIWrapper, original_method, *args, **kwargs):
     config = OpenAIChatConfig(**kwargs)
 
     if model is not None and ":" in model:
-        model = model.split(":")[1]
-        # Todo: convert other model responses to OpenAI response format
+        provider, model = model.split(":", 1)
+        if provider in ProvidersList:
+            config = config.convert()
+            config.provider = provider
+            config.model = model
+            # Todo: return in OpenAI format
+            return self._speck_client.chat.create(prompt=prompt, config=config)
 
     logger.info(f"Call {original_method.__name__} with model {model}")
     if stream:
@@ -169,8 +174,14 @@ def stream_iter_wrapper(original_method, *args, **kwargs):
 
 
 class OpenAIWrapper(_OpenAI):
-    def add_speck_api_key(self, speck_api_key: str):
+    _speck_api_key: str
+    _speck_client: Speck
+
+    def initialize_speck(self, speck_api_key: str, api_keys: dict[str, str] = {}):
         self._speck_api_key = speck_api_key
+        if "openai" not in api_keys:
+            api_keys["openai"] = self.api_key
+        self._speck_client = Speck(api_key=speck_api_key, api_keys=api_keys)
 
 
 def _wrapper_init(original_method, *args, **kwargs):

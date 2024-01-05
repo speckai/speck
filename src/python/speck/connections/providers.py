@@ -7,3 +7,8 @@ class Providers(Enum):
     OpenAI = "OpenAI"
     CustomProvider = "CustomProvider"
     Replicate = "Replicate"
+
+
+ProvidersList: list[str] = []
+for provider in Providers:
+    ProvidersList.append(provider.value.lower())
