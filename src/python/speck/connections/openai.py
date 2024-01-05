@@ -57,9 +57,7 @@ class OpenAIConnector(IConnector, IChatClient):
     def _convert_messages_to_prompt(self, messages: Prompt) -> list[dict[str, str]]:
         return [{"role": msg.role, "content": msg.content} for msg in messages.messages]
 
-    def chat(
-        self, prompt: Prompt, config: ChatConfig = NOT_GIVEN, **config_kwargs
-    ) -> Union[OpenAIResponse, Stream]:
+    def _process_kwargs(self, prompt: Prompt, config: ChatConfig, **config_kwargs):
         if config is NOT_GIVEN:
             config = ChatConfig(**config_kwargs)
             # Todo: convert to default config based on class param
@@ -68,6 +66,12 @@ class OpenAIConnector(IConnector, IChatClient):
         all_kwargs = {k: v for k, v in vars(config).items() if v is not None}
 
         input = self._convert_messages_to_prompt(prompt)
+        return input, all_kwargs
+
+    def chat(
+        self, prompt: Prompt, config: ChatConfig = NOT_GIVEN, **config_kwargs
+    ) -> Union[OpenAIResponse, Stream]:
+        input, all_kwargs = self._process_kwargs(prompt, config, **config_kwargs)
 
         if config.stream:
             output_stream = self.client.chat.completions.create(
@@ -100,14 +104,7 @@ class OpenAIConnector(IConnector, IChatClient):
     async def achat(
         self, prompt: Prompt, config: ChatConfig = NOT_GIVEN, **config_kwargs
     ) -> Union[OpenAIResponse, Stream]:
-        if config is NOT_GIVEN:
-            config = ChatConfig(**config_kwargs)
-            # Todo: convert to default config based on class param
-
-        # Remove all None values
-        all_kwargs = {k: v for k, v in vars(config).items() if v is not None}
-
-        input = self._convert_messages_to_prompt(prompt)
+        input, all_kwargs = self._process_kwargs(prompt, config, **config_kwargs)
 
         if config.stream:
             output_stream = await self.async_client.chat.completions.create(

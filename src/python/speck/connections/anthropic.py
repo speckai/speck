@@ -90,9 +90,7 @@ class AnthropicConnector(IConnector, IChatClient):
         res += "Assistant:"
         return res
 
-    def chat(
-        self, prompt: Prompt, config: ChatConfig = NOT_GIVEN, **config_kwargs
-    ) -> Union[AnthropicResponse, Stream]:
+    def _process_kwargs(self, prompt: Prompt, config: ChatConfig, **config_kwargs):
         if config is NOT_GIVEN:
             config = ChatConfig(**config_kwargs)
             # Todo: convert to default config based on class param
@@ -114,7 +112,23 @@ class AnthropicConnector(IConnector, IChatClient):
             "max_tokens_to_sample": config.max_tokens or 100,
             "stream": config.stream,
             "temperature": config.temperature,
+            **config._kwargs,
         }
+
+        blocked_kwargs = ["provider", "_log", "_kwargs", "stream", "max_tokens"]
+
+        for k, v in all_kwargs.items():
+            if k not in data and k not in blocked_kwargs:
+                data[k] = v
+
+        return headers, data, all_kwargs
+
+    def chat(
+        self, prompt: Prompt, config: ChatConfig = NOT_GIVEN, **config_kwargs
+    ) -> Union[AnthropicResponse, Stream]:
+        headers, data, all_kwargs = self._process_kwargs(
+            prompt, config, **config_kwargs
+        )
 
         response = requests.post(
             self.url, headers=headers, data=json.dumps(data), stream=config.stream
@@ -142,27 +156,9 @@ class AnthropicConnector(IConnector, IChatClient):
     async def achat(
         self, prompt: Prompt, config: ChatConfig = NOT_GIVEN, **config_kwargs
     ) -> Union[AnthropicResponse, Stream]:
-        if config is NOT_GIVEN:
-            config = ChatConfig(**config_kwargs)
-            # Todo: convert to default config based on class param
-
-        # Remove all None values
-        all_kwargs = {k: v for k, v in vars(config).items() if v is not None}
-
-        input = self._convert_messages_to_prompt(prompt)
-
-        headers = {
-            "anthropic-version": config.get("anthropic_version", "2023-06-01"),
-            "content-type": "application/json",
-            "x-api-key": self.api_key,
-        }
-
-        data = {
-            "model": config.model,
-            "prompt": input,
-            "max_tokens_to_sample": config.max_tokens or 100,
-            "stream": config.stream,
-        }
+        headers, data, all_kwargs = self._process_kwargs(
+            prompt, config, **config_kwargs
+        )
 
         with httpx.AsyncClient() as client:
             response = await client.post(

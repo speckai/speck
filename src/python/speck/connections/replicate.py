@@ -77,14 +77,17 @@ class ReplicateConnector(IConnector, IChatClient):
         #     "top_k": top_k,
         #     "test": test,
         # }
-        mapped_args = {
-            "repetition_penalty": "presence_penalty",
-        }
+        blocked_kwargs = ["provider", "_log", "_kwargs", "stream", "max_tokens"]
+        mapped_args = {"repetition_penalty": "presence_penalty"}
         all_kwargs = {
-            mapped_args.get(k, k): v for k, v in vars(config).items() if v is not None
+            mapped_args.get(k, k): v
+            for k, v in vars(config).items()
+            if v is not None and k not in blocked_kwargs
         }
         if all_kwargs.get("temperature") < 0.01:
             all_kwargs["temperature"] = 0.01
+
+        log_kwargs = {k: v for k, v in vars(config).items() if v is not None}
 
         # input = (
         #     "".join(
@@ -103,12 +106,12 @@ class ReplicateConnector(IConnector, IChatClient):
             if arg in all_kwargs:
                 del all_kwargs[arg]
 
-        return system_prompt, user_prompt, all_kwargs
+        return system_prompt, user_prompt, all_kwargs, log_kwargs
 
     def chat(
         self, prompt: Prompt, config: ChatConfig = NOT_GIVEN, **config_kwargs
     ) -> Union[Response, Stream]:
-        system_prompt, user_prompt, all_kwargs = self._process_args(
+        system_prompt, user_prompt, all_kwargs, log_kwargs = self._process_args(
             prompt, config, **config_kwargs
         )
 
@@ -121,7 +124,7 @@ class ReplicateConnector(IConnector, IChatClient):
             return Stream(
                 client=self._client,
                 iterator=output,
-                kwargs=self._get_log_kwargs(prompt, None, **all_kwargs),
+                kwargs=self._get_log_kwargs(prompt, None, **log_kwargs),
                 processor=_process_chunk,
             )
         else:
@@ -136,7 +139,7 @@ class ReplicateConnector(IConnector, IChatClient):
                 self.log(
                     prompt=prompt,
                     response=Response(content=content),
-                    **all_kwargs,
+                    **log_kwargs,
                 )
 
             return Response(content=content)
@@ -144,7 +147,7 @@ class ReplicateConnector(IConnector, IChatClient):
     async def achat(
         self, prompt: Prompt, config: ChatConfig = NOT_GIVEN, **config_kwargs
     ) -> Union[Response, Stream]:
-        system_prompt, user_prompt, all_kwargs = self._process_args(
+        system_prompt, user_prompt, all_kwargs, log_kwargs = self._process_args(
             prompt, config, **config_kwargs
         )
 
@@ -156,7 +159,7 @@ class ReplicateConnector(IConnector, IChatClient):
 
             return Stream(
                 iterator=output,
-                kwargs=self._get_log_kwargs(prompt, None, **all_kwargs),
+                kwargs=self._get_log_kwargs(prompt, None, **log_kwargs),
                 processor=_process_chunk,
             )
         else:
@@ -171,7 +174,7 @@ class ReplicateConnector(IConnector, IChatClient):
                 self.log(
                     prompt=prompt,
                     response=Response(content=content),
-                    **all_kwargs,
+                    **log_kwargs,
                 )
 
             return Response(content=content)
