@@ -20,7 +20,7 @@ for model in models:
             ],
         ),
         model=model,
-        temperature=1.0,
+        temperature=0.0,
         max_tokens=100,
         stream=True,
         _log=True,

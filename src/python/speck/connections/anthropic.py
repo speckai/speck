@@ -113,6 +113,7 @@ class AnthropicConnector(IConnector, IChatClient):
             "prompt": input,
             "max_tokens_to_sample": config.max_tokens or 100,
             "stream": config.stream,
+            "temperature": config.temperature,
         }
 
         response = requests.post(
