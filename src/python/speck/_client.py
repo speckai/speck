@@ -108,7 +108,9 @@ def _create_connector(
 
     if config.provider == "openai":
         connector = OpenAIConnector(
-            client=client, api_key=client.api_keys["openai"].strip()
+            speck_api_key=client.api_key,
+            client=client,
+            api_key=client.api_keys["openai"].strip(),
         )
         return connector
     if config.provider == "azure-openai":

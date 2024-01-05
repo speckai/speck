@@ -68,7 +68,7 @@ class AnthropicConnector(IConnector, IChatClient):
         self, api_key: str = None, speck_api_key: str = None, client: "Speck" = None
     ):
         super().__init__(
-            client=client, provider=Providers.OpenAI, speck_api_key=speck_api_key
+            client=client, provider=Providers.Anthropic, speck_api_key=speck_api_key
         )
         if api_key is not None:
             self.api_key = api_key
