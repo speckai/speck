@@ -19,6 +19,7 @@ install_requires = [
     "requests",
     "pydantic",
     "httpx",
+    "websockets",
 ]
 
 

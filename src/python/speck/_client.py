@@ -35,6 +35,15 @@ class BaseClient:
             "api_version": api_version,
         }
 
+    def to_dict(self):
+        return {
+            "api_key": self.api_key,
+            "api_keys": self.api_keys,
+            "endpoint": self.endpoint,
+            "azure_openai_config": self.azure_openai_config,
+            "debug": self.debug,
+        }
+
 
 class Resource:
     pass
@@ -149,6 +158,11 @@ class Chat(SyncResource):
         prompt = Prompt.create(prompt)
         config = ChatConfig.create(config, config_kwargs)
         connector = _create_connector(self.client, prompt, config)
+
+        if self.client.debug:
+            # Create a socket connection to the server
+            prompt, config = connector.debug_chat(prompt, config)
+
         return connector.chat(prompt, config, **config_kwargs)
 
     def log(

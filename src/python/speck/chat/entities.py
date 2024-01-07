@@ -4,10 +4,12 @@ from abc import ABC, abstractmethod
 from typing import Any, Callable, Iterator, Literal, Optional, Tuple, Union
 
 from openai._types import NotGiven
+
 # from dataclasses import dataclass
 from pydantic import BaseModel, Extra
 
 from ..chat.logger import ChatLogger
+from ..debug._debug_socket import run_debug_websocket
 
 NOT_GIVEN = None
 
@@ -25,6 +27,12 @@ class SafeDict(dict):
 class Prompt(str):
     messages: list[Message]
     variables: Union[dict[str, str], None] = None
+
+    def to_dict(self):
+        return {
+            "messages": self.messages,
+            "variables": self.variables,
+        }
 
     def __init__(
         self,
@@ -413,8 +421,6 @@ class LogConfig(BaseModel):
 
 class ChatConfig:
     # Todo: add typed params here
-
-    # Todo: Create universal config format
     # Todo: Create conversions to other formats
     def __init__(
         self,
@@ -443,6 +449,24 @@ class ChatConfig:
         self.frequency_penalty = frequency_penalty
         self.presence_penalty = presence_penalty
         self.chat_args = config_kwargs
+        # If this is modified, update to_dict too
+
+    def to_dict(self):
+        return {
+            "provider": self.provider,
+            "model": str(self.model),  # Assuming model can be represented as a string
+            "stream": self.stream,
+            "_log": self._log,
+            "temperature": self._convert_optional(self.temperature),
+            "max_tokens": self._convert_optional(self.max_tokens),
+            "top_p": self._convert_optional(self.top_p),
+            "frequency_penalty": self._convert_optional(self.frequency_penalty),
+            "presence_penalty": self._convert_optional(self.presence_penalty),
+            "chat_args": self.chat_args,
+        }
+
+    def _convert_optional(self, value):
+        return None if isinstance(value, NotGiven) else value
 
     @classmethod
     def create(cls, config: ChatConfigTypes, kwargs: dict = None) -> "ChatConfig":
@@ -498,6 +522,9 @@ class ChatConfig:
             **config.chat_args,
         )
 
+    def encode(self, encoding: str = "utf-8"):
+        return self.__str__().encode(encoding)
+
     def __str__(self):
         return f"ChatConfig(provider={self.provider}, model={self.model}, stream={self.stream}, _log={self._log}, temperature={self.temperature}, max_tokens={self.max_tokens}, top_p={self.top_p}, frequency_penalty={self.frequency_penalty}, presence_penalty={self.presence_penalty}, _kwargs={self._kwargs})"
 
@@ -545,6 +572,18 @@ class OpenAIChatConfig(ChatConfig):
 
 
 class IChatClient(ABC):
+    def debug_chat(
+        self, prompt: "Prompt", config: "ChatConfig"
+    ) -> ("Prompt", "ChatConfig"):
+        data = run_debug_websocket(self._client, self, prompt, config)
+
+        print(data)
+        if data.get("prompt") and data.get("config"):
+            prompt = Prompt(**data["prompt"])
+            config = ChatConfig(**data["config"])
+
+        return prompt, config
+
     @abstractmethod
     def chat(
         self,

@@ -79,8 +79,6 @@ class OpenAIConnector(IConnector, IChatClient):
     def chat(
         self, prompt: Prompt, config: ChatConfig = NOT_GIVEN, **config_kwargs
     ) -> Union[OpenAIResponse, Stream]:
-        if self._client.debug:
-            print("DEBUGGING!")
         input, all_kwargs, log_config = self._process_kwargs(
             prompt, config, **config_kwargs
         )
