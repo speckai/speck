@@ -20,7 +20,7 @@ async def _websocket_client(client, connector, prompt, config):
 
         try:
             # Wait for a response with a timeout of 5 seconds
-            response = await asyncio.wait_for(websocket.recv(), timeout=5)
+            response = await asyncio.wait_for(websocket.recv(), timeout=600)
             print(f"Received from server: {json.loads(response)}")
             return json.loads(response)
         except asyncio.TimeoutError:

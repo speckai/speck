@@ -162,8 +162,9 @@ class Chat(SyncResource):
         if self.client.debug:
             # Create a socket connection to the server
             prompt, config = connector.debug_chat(prompt, config)
+            config_kwargs = {}  # Converted in ChatConfig.create
 
-        return connector.chat(prompt, config, **config_kwargs)
+        return connector.chat(prompt=prompt, config=config, **config_kwargs)
 
     def log(
         self, messages: PromptTypes, config: ChatConfigTypes, response: ResponseTypes

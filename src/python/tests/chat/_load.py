@@ -31,6 +31,8 @@ client = Speck(
         "azure_openai": AZURE_OPENAI_API_KEY,
         "anthropic": ANTHROPIC_API_KEY,
     },
+    endpoint="http://localhost:8080",
+    debug=True,
 )
 client.add_azure_openai_config("", "")
 
@@ -42,5 +44,7 @@ async_client = AsyncSpeck(
         "azure_openai": AZURE_OPENAI_API_KEY,
         "anthropic": ANTHROPIC_API_KEY,
     },
+    endpoint="http://localhost:8080",
+    debug=True,
 )
 async_client.add_azure_openai_config("", "")
