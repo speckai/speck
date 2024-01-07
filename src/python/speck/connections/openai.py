@@ -12,15 +12,8 @@ from typing import Union
 from openai import AsyncOpenAI, OpenAI
 from openai.types.chat import ChatCompletion
 
-from ..chat.entities import (
-    NOT_GIVEN,
-    ChatConfig,
-    IChatClient,
-    MessageChunk,
-    Prompt,
-    Response,
-    Stream,
-)
+from ..chat.entities import (NOT_GIVEN, ChatConfig, IChatClient, LogConfig,
+                             MessageChunk, Prompt, Response, Stream)
 from ..util import filter_kwargs, get_dict
 from .connector import IConnector
 from .providers import Providers
@@ -32,7 +25,6 @@ def _process_chunk(obj) -> MessageChunk:
 
 class OpenAIResponse(Response):
     def __init__(self, chat_completion: ChatCompletion):
-        print(chat_completion)
         content = chat_completion.choices[0].message.content
         super().__init__(
             content=content,
@@ -44,10 +36,10 @@ class OpenAIResponse(Response):
 
 class OpenAIConnector(IConnector, IChatClient):
     def __init__(
-        self, client: "Speck" = None, api_key: str = None, speck_api_key: str = None
+        self, client: "Speck" = None, api_key: str = None
     ):
         super().__init__(
-            client=client, provider=Providers.OpenAI, speck_api_key=speck_api_key
+            client=client, provider=Providers.OpenAI
         )
         if api_key is not None:
             self.api_key = api_key
@@ -66,13 +58,25 @@ class OpenAIConnector(IConnector, IChatClient):
         all_kwargs = {k: v for k, v in vars(config).items() if v is not None}
 
         input = self._convert_messages_to_prompt(prompt)
-        return input, all_kwargs
+
+        log_config: LogConfig = None
+        if config_kwargs.get("_log"):
+            if self._client.log_config:
+                log_config = self._client.log_config
+            
+            elif not config_kwargs.get("log_config"):
+                raise ValueError(
+                    "No log config found. Define the log config in the log or client."
+                )
+            else:
+                log_config = config_kwargs.get("log_config")
+        return input, all_kwargs, log_config
 
     def chat(
         self, prompt: Prompt, config: ChatConfig = NOT_GIVEN, **config_kwargs
     ) -> Union[OpenAIResponse, Stream]:
-        input, all_kwargs = self._process_kwargs(prompt, config, **config_kwargs)
-
+        input, all_kwargs, log_config = self._process_kwargs(prompt, config, **config_kwargs)
+        
         if config.stream:
             output_stream = self.client.chat.completions.create(
                 messages=input,
@@ -82,6 +86,7 @@ class OpenAIConnector(IConnector, IChatClient):
             return Stream(
                 client=self._client,
                 iterator=output_stream,
+                log_config=log_config,
                 kwargs=self._get_log_kwargs(prompt, None, **all_kwargs),
                 processor=_process_chunk,
             )
@@ -93,6 +98,7 @@ class OpenAIConnector(IConnector, IChatClient):
 
             if config._log:
                 self.log(
+                    config=log_config,
                     prompt=prompt,
                     response=OpenAIResponse(output),
                     **all_kwargs,
@@ -104,7 +110,7 @@ class OpenAIConnector(IConnector, IChatClient):
     async def achat(
         self, prompt: Prompt, config: ChatConfig = NOT_GIVEN, **config_kwargs
     ) -> Union[OpenAIResponse, Stream]:
-        input, all_kwargs = self._process_kwargs(prompt, config, **config_kwargs)
+        input, all_kwargs, log_config = self._process_kwargs(prompt, config, **config_kwargs)
 
         if config.stream:
             output_stream = await self.async_client.chat.completions.create(
@@ -116,6 +122,7 @@ class OpenAIConnector(IConnector, IChatClient):
             return Stream(
                 client=self._client,
                 iterator=output_stream,
+                log_config=log_config,
                 kwargs=self._get_log_kwargs(prompt, None, **all_kwargs),
                 processor=_process_chunk,
             )
@@ -127,6 +134,7 @@ class OpenAIConnector(IConnector, IChatClient):
 
             if config._log:
                 self.log(
+                    config=log_config,
                     prompt=prompt,
                     response=OpenAIResponse(output),
                     **all_kwargs,

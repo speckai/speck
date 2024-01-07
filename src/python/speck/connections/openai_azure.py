@@ -12,12 +12,11 @@ class AzureOpenAIConnector(OpenAIConnector):
     def __init__(
         self,
         api_key: str,
-        speck_api_key: str,
         azure_endpoint: str,
         api_version: str,
         **kwargs
     ):
-        super().__init__(api_key=None, speck_api_key=speck_api_key)
+        super().__init__(api_key=None)
         self.client = AzureOpenAI(
             api_key=self.api_key,
             azure_endpoint=azure_endpoint,

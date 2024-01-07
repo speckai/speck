@@ -1,3 +1,4 @@
+import warnings
 from typing import Any
 
 import requests
@@ -8,8 +9,7 @@ from .metadata import generate_metadata_dict
 
 # Todo: Fix typing for this function (circular import)
 def universal_format_log(
-    speck_api_key: str,
-    endpoint: str,
+    log_config: "LogConfig",
     provider: "Providers",
     prompt: "Prompt",
     model: str,
@@ -17,9 +17,13 @@ def universal_format_log(
     session_key: str = None,
     **kwargs,
 ) -> dict[str, str]:
-    if not speck_api_key:
-        return {}
-
+    if not log_config:
+        raise ValueError("No log config found. Define the log config in the log or client.")
+    if not log_config.api_key:
+        raise ValueError("No valid API key found. Define the API key for the log config.")
+    if not log_config.endpoint:
+        raise ValueError("No valid endpoint found. Define the endpoint for the log config.")
+    print(kwargs)
     body: dict[str, Any] = {
         "input": {
             # Todo: Fix typing for Providers enum (circular import)
@@ -31,11 +35,14 @@ def universal_format_log(
         "output": get_dict(response),
         "metadata": generate_metadata_dict(),
     }
+    print("API")
+    print(log_config.api_key)
+    print(body)
 
     try:
-        headers = {"X-API-Key": speck_api_key}
+        headers = {"X-API-Key": log_config.api_key}
         request: requests.Response = requests.post(
-            f"{endpoint}/logging/create/llm", headers=headers, json=body
+            f"{log_config.endpoint}/logging/create/llm", headers=headers, json=body
         )
         request.raise_for_status()
         return request.json()

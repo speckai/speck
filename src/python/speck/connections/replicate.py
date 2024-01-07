@@ -9,14 +9,8 @@ from typing import Union
 import replicate
 from replicate import Client
 
-from ..chat.entities import (
-    ChatConfig,
-    IChatClient,
-    MessageChunk,
-    Prompt,
-    Response,
-    Stream,
-)
+from ..chat.entities import (ChatConfig, IChatClient, LogConfig, MessageChunk,
+                             Prompt, Response, Stream)
 from .connector import IConnector
 from .providers import Providers
 
@@ -39,7 +33,6 @@ class ReplicateConnector(IConnector, IChatClient):
         self,
         client: "Speck" = None,
         api_key: Union[str, None] = None,
-        speck_api_key: Union[str, None] = None,
         message_prefix: str = "<|im_start|>{role}\n",
         message_suffix: str = "<|im_end|>\n",
         messages_end: str = "<|im_start|>assistant\n",
@@ -47,7 +40,7 @@ class ReplicateConnector(IConnector, IChatClient):
         # Todo: support custom replicate model mappings
         # By default, built for meta/llama-2-70b
         super().__init__(
-            client=client, provider=Providers.Replicate, speck_api_key=speck_api_key
+            client=client, provider=Providers.Replicate
         )
         self.api_key = api_key
         self.message_prefix = message_prefix
@@ -106,12 +99,24 @@ class ReplicateConnector(IConnector, IChatClient):
             if arg in all_kwargs:
                 del all_kwargs[arg]
 
-        return system_prompt, user_prompt, all_kwargs, log_kwargs
+        log_config: LogConfig = None
+        if config_kwargs.get("_log"):
+            if self._client.log_config:
+                log_config = self._client.log_config
+            
+            elif not config_kwargs.get("log_config"):
+                raise ValueError(
+                    "No log config found. Define the log config in the log or client."
+                )
+            else:
+                log_config = config_kwargs.get("log_config")
+
+        return system_prompt, user_prompt, all_kwargs, log_kwargs, log_config
 
     def chat(
         self, prompt: Prompt, config: ChatConfig = NOT_GIVEN, **config_kwargs
     ) -> Union[Response, Stream]:
-        system_prompt, user_prompt, all_kwargs, log_kwargs = self._process_args(
+        system_prompt, user_prompt, all_kwargs, log_kwargs, log_config = self._process_args(
             prompt, config, **config_kwargs
         )
 
@@ -124,6 +129,7 @@ class ReplicateConnector(IConnector, IChatClient):
             return Stream(
                 client=self._client,
                 iterator=output,
+                log_config=log_config,
                 kwargs=self._get_log_kwargs(prompt, None, **log_kwargs),
                 processor=_process_chunk,
             )
@@ -133,10 +139,11 @@ class ReplicateConnector(IConnector, IChatClient):
                 input={"prompt": user_prompt, **all_kwargs},
             )
 
-            content = "".join(item for item in output)
+            content = "".join(output)
 
             if config._log:
                 self.log(
+                    config=log_config,
                     prompt=prompt,
                     response=Response(content=content),
                     **log_kwargs,
@@ -147,7 +154,7 @@ class ReplicateConnector(IConnector, IChatClient):
     async def achat(
         self, prompt: Prompt, config: ChatConfig = NOT_GIVEN, **config_kwargs
     ) -> Union[Response, Stream]:
-        system_prompt, user_prompt, all_kwargs, log_kwargs = self._process_args(
+        system_prompt, user_prompt, all_kwargs, log_kwargs, log_config = self._process_args(
             prompt, config, **config_kwargs
         )
 
@@ -159,6 +166,7 @@ class ReplicateConnector(IConnector, IChatClient):
 
             return Stream(
                 iterator=output,
+                log_config=log_config,
                 kwargs=self._get_log_kwargs(prompt, None, **log_kwargs),
                 processor=_process_chunk,
             )
@@ -172,6 +180,7 @@ class ReplicateConnector(IConnector, IChatClient):
 
             if config._log:
                 self.log(
+                    config=log_config,
                     prompt=prompt,
                     response=Response(content=content),
                     **log_kwargs,

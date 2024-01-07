@@ -10,15 +10,8 @@ from typing import Union
 import httpx
 import requests
 
-from ..chat.entities import (
-    NOT_GIVEN,
-    ChatConfig,
-    IChatClient,
-    MessageChunk,
-    Prompt,
-    Response,
-    Stream,
-)
+from ..chat.entities import (NOT_GIVEN, ChatConfig, IChatClient, LogConfig,
+                             MessageChunk, Prompt, Response, Stream)
 from .connector import IConnector
 from .providers import Providers
 
@@ -65,15 +58,14 @@ class AnthropicResponse(Response):
 
 class AnthropicConnector(IConnector, IChatClient):
     def __init__(
-        self, api_key: str = None, speck_api_key: str = None, client: "Speck" = None
+        self, api_key: str = None, client: "Speck" = None
     ):
         super().__init__(
-            client=client, provider=Providers.Anthropic, speck_api_key=speck_api_key
+            client=client, provider=Providers.Anthropic
         )
         if api_key is not None:
             self.api_key = api_key
             self.url = "https://api.anthropic.com/v1/complete"
-        self.speck_api_key = speck_api_key
 
     def _convert_messages_to_prompt(self, messages: Prompt) -> str:
         res = ""
@@ -112,7 +104,7 @@ class AnthropicConnector(IConnector, IChatClient):
             "max_tokens_to_sample": config.max_tokens or 100,
             "stream": config.stream,
             "temperature": config.temperature,
-            **config._kwargs,
+            **config.chat_args,
         }
 
         blocked_kwargs = ["provider", "_log", "_kwargs", "stream", "max_tokens"]
@@ -121,12 +113,24 @@ class AnthropicConnector(IConnector, IChatClient):
             if k not in data and k not in blocked_kwargs:
                 data[k] = v
 
-        return headers, data, all_kwargs
+        log_config: LogConfig = None
+        if config_kwargs.get("_log"):
+            if self._client.log_config:
+                log_config = self._client.log_config
+            
+            elif not config_kwargs.get("log_config"):
+                raise ValueError(
+                    "No log config found. Define the log config in the log or client."
+                )
+            else:
+                log_config = config_kwargs.get("log_config")
+
+        return headers, data, all_kwargs, log_config
 
     def chat(
         self, prompt: Prompt, config: ChatConfig = NOT_GIVEN, **config_kwargs
     ) -> Union[AnthropicResponse, Stream]:
-        headers, data, all_kwargs = self._process_kwargs(
+        headers, data, all_kwargs, log_config = self._process_kwargs(
             prompt, config, **config_kwargs
         )
 
@@ -138,6 +142,7 @@ class AnthropicConnector(IConnector, IChatClient):
             return Stream(
                 client=self._client,
                 iterator=AnthropicStream(response.iter_lines()),
+                log_config=log_config,
                 kwargs=self._get_log_kwargs(prompt, None, **all_kwargs),
                 processor=_process_chunk,
             )
@@ -145,6 +150,7 @@ class AnthropicConnector(IConnector, IChatClient):
             output = response.json()
             if config._log:
                 self.log(
+                    config=log_config,
                     prompt=prompt,
                     response=AnthropicResponse(output),
                     **all_kwargs,
@@ -156,7 +162,7 @@ class AnthropicConnector(IConnector, IChatClient):
     async def achat(
         self, prompt: Prompt, config: ChatConfig = NOT_GIVEN, **config_kwargs
     ) -> Union[AnthropicResponse, Stream]:
-        headers, data, all_kwargs = self._process_kwargs(
+        headers, data, all_kwargs, log_config = self._process_kwargs(
             prompt, config, **config_kwargs
         )
 
@@ -169,6 +175,7 @@ class AnthropicConnector(IConnector, IChatClient):
                 return Stream(
                     client=self._client,
                     iterator=AnthropicStream(response.iter_lines()),
+                    log_config=log_config,
                     kwargs=self._get_log_kwargs(prompt, None, **all_kwargs),
                     processor=_process_chunk,
                 )
@@ -176,6 +183,7 @@ class AnthropicConnector(IConnector, IChatClient):
                 output = response.json()
                 if config._log:
                     self.log(
+                        config=log_config,
                         prompt=prompt,
                         response=AnthropicResponse(output),
                         **all_kwargs,

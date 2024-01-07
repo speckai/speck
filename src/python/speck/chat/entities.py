@@ -4,9 +4,8 @@ from abc import ABC, abstractmethod
 from typing import Any, Callable, Iterator, Literal, Optional, Tuple, Union
 
 from openai._types import NotGiven
-
 # from dataclasses import dataclass
-from pydantic import BaseModel
+from pydantic import BaseModel, Extra
 
 from ..chat.logger import ChatLogger
 
@@ -344,6 +343,7 @@ class Stream:
         client: "Speck",
         iterator: Iterator[Any],
         kwargs: dict,
+        log_config: "LogConfig",
         processor: Callable[[Any], MessageChunk],
     ):
         self._client = client
@@ -354,6 +354,7 @@ class Stream:
         self._processor = processor
         self._has_logged = False
         self._closed = False
+        self._log_config = log_config
 
     def _log(self):
         if not self._has_logged:
@@ -366,8 +367,9 @@ class Stream:
             kwargs["response"] = Response(
                 content=self.message, raw={}, closed=True, completion_tokens=self.tokens
             )
+
             # Todo: add prompt_tokens using tiktoken
-            ChatLogger.log(endpoint=self._client.endpoint, **kwargs)
+            ChatLogger.log(log_config=self._log_config, **kwargs)
 
     def _process(self, item) -> MessageChunk:
         return self._processor(item)
@@ -402,6 +404,14 @@ class Stream:
             pass
 
 
+class LogConfig(BaseModel):
+    api_key: str
+    endpoint: str = "https://api.speck.chat"
+
+    class Config:
+        extra = "allow"
+
+
 class ChatConfig:
     # Todo: add typed params here
 
@@ -421,6 +431,9 @@ class ChatConfig:
         presence_penalty: Union[Optional[float], NotGiven] = NOT_GIVEN,
         **config_kwargs,
     ):
+        if "log_config" in config_kwargs:
+            del config_kwargs["log_config"]
+
         self.provider = provider
         self.model = model
         self.stream = stream
@@ -430,13 +443,12 @@ class ChatConfig:
         self.top_p = top_p
         self.frequency_penalty = frequency_penalty
         self.presence_penalty = presence_penalty
-        self._kwargs = config_kwargs
+        self.chat_args = config_kwargs
 
     @classmethod
     def create(cls, config: ChatConfigTypes, kwargs: dict = None) -> "ChatConfig":
         if isinstance(config, cls):
             if kwargs is not None:
-                # config._kwargs = {**config._kwargs, **kwargs}
                 return cls(**{**config.__dict__, **kwargs})
             else:
                 return config
@@ -472,21 +484,19 @@ class ChatConfig:
     def log_chat(
         self,
         *,
-        speck_api_key: str,
-        endpoint: str,
+        log_config: LogConfig,
         prompt: Prompt,
         response: Response,
         provider: str = "speck",
     ):
         config = self.convert()
         ChatLogger.log(
-            speck_api_key=speck_api_key,
-            endpoint=endpoint,
-            provider=str(provider),
+            log_config=log_config,
+            provider=provider,
             model=str(config.model),
             prompt=prompt,
             response=response,
-            **config._kwargs,
+            **config.chat_args,
         )
 
     def __str__(self):

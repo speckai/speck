@@ -1,16 +1,15 @@
 from abc import ABC
 
-from ..chat.entities import ChatLogger, Prompt, Response
+from ..chat.entities import ChatLogger, LogConfig, Prompt, Response
 from .providers import Providers
 
 
 class IConnector(ABC):
     _client: "Speck"
 
-    def __init__(self, client: "Speck", provider: Providers, speck_api_key: str):
+    def __init__(self, client: "Speck", provider: Providers):
         self._client = client
         self.provider = provider
-        self.speck_api_key = speck_api_key
 
     # @abstractmethod
     # def process_message(self, messages: Messages, model: str) -> str:
@@ -18,7 +17,6 @@ class IConnector(ABC):
 
     def _get_log_kwargs(self, prompt: Prompt, response: Response, **kwargs):
         return {
-            "speck_api_key": self.speck_api_key,
             "provider": self.provider,
             "model": kwargs.get("model"),
             "temperature": kwargs.get("temperature"),
@@ -27,10 +25,11 @@ class IConnector(ABC):
             "config": kwargs,
             "response": response,
         }
+        
 
-    def log(self, *, prompt: Prompt, response: Response, **kwargs):
+    def log(self, *, config: LogConfig, prompt: Prompt, response: Response, **kwargs):
         ChatLogger.log(
-            endpoint=self._client.endpoint,
+            config=config,
             **self._get_log_kwargs(prompt, response, **kwargs),
         )
 
