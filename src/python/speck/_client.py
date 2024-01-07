@@ -1,8 +1,15 @@
 from typing import Tuple, Union
 
 from .chat.client import IChatClient
-from .chat.entities import (ChatConfig, ChatConfigTypes, LogConfig, Prompt,
-                            PromptTypes, Response, ResponseTypes)
+from .chat.entities import (
+    ChatConfig,
+    ChatConfigTypes,
+    LogConfig,
+    Prompt,
+    PromptTypes,
+    Response,
+    ResponseTypes,
+)
 from .connections.anthropic import AnthropicConnector
 from .connections.openai import OpenAIConnector
 from .connections.openai_azure import AzureOpenAIConnector
@@ -17,6 +24,7 @@ class BaseClient:
     api_keys: dict[str, str]
     endpoint: Union[str, None]
     azure_openai_config: dict[str, str]
+    debug: bool = False
 
     def add_api_key(self, provider: str, api_key: str):
         self.api_keys[provider] = api_key
@@ -180,11 +188,13 @@ class Speck(BaseClient):
         api_key: Union[str, None] = None,
         api_keys: dict[str, str] = {},
         endpoint: str = "https://api.speck.chat",
+        debug: bool = False,
     ):
         self.api_key = api_key.strip() if api_key is not None else None
         self.api_keys = api_keys
         self.endpoint = endpoint
         self.azure_openai_config = {}
+        self.debug = debug
 
         self.chat = Chat(self)
         self.logger = Logger(self)
@@ -196,11 +206,13 @@ class AsyncSpeck(BaseClient):
         api_key: Union[str, None] = None,
         api_keys: dict[str, str] = {},
         endpoint: Union[str, None] = "https://api.speck.chat",
+        debug: bool = False,
     ):
         self.api_key = api_key.strip() if api_key is not None else None
         self.api_keys = api_keys
         self.endpoint = endpoint
         self.azure_openai_config = {}
+        self.debug = debug
 
         self.chat = AsyncChat(self)
         self.logger = Logger(self)

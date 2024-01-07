@@ -9,8 +9,15 @@ from typing import Union
 import replicate
 from replicate import Client
 
-from ..chat.entities import (ChatConfig, IChatClient, LogConfig, MessageChunk,
-                             Prompt, Response, Stream)
+from ..chat.entities import (
+    ChatConfig,
+    IChatClient,
+    LogConfig,
+    MessageChunk,
+    Prompt,
+    Response,
+    Stream,
+)
 from .connector import IConnector
 from .providers import Providers
 
@@ -38,9 +45,7 @@ class ReplicateConnector(IConnector, IChatClient):
     ):
         # Todo: support custom replicate model mappings
         # By default, built for meta/llama-2-70b
-        super().__init__(
-            client=client, provider=Providers.Replicate
-        )
+        super().__init__(client=client, provider=Providers.Replicate)
         self.api_key = api_key
         self.message_prefix = message_prefix
         self.message_suffix = message_suffix
@@ -69,7 +74,7 @@ class ReplicateConnector(IConnector, IChatClient):
         #     "top_k": top_k,
         #     "test": test,
         # }
-        blocked_kwargs = ["provider", "_log", "_kwargs", "stream", "max_tokens"]
+        blocked_kwargs = ["provider", "_log", "chat_args", "stream", "max_tokens"]
         mapped_args = {"repetition_penalty": "presence_penalty"}
         all_kwargs = {
             mapped_args.get(k, k): v
@@ -94,7 +99,7 @@ class ReplicateConnector(IConnector, IChatClient):
         all_kwargs["system_prompt"] = system_prompt
 
         # Remove unused kwargs (kept in, these values can cause errors)
-        for arg in ["stream", "provider", "_log", "_kwargs"]:
+        for arg in ["stream", "provider", "_log", "chat_args"]:
             if arg in all_kwargs:
                 del all_kwargs[arg]
 
@@ -102,7 +107,7 @@ class ReplicateConnector(IConnector, IChatClient):
         if config_kwargs.get("_log"):
             if self._client.log_config:
                 log_config = self._client.log_config
-            
+
             elif not config_kwargs.get("log_config"):
                 raise ValueError(
                     "No log config found. Define the log config in the log or client."
@@ -115,9 +120,13 @@ class ReplicateConnector(IConnector, IChatClient):
     def chat(
         self, prompt: Prompt, config: ChatConfig = NOT_GIVEN, **config_kwargs
     ) -> Union[Response, Stream]:
-        system_prompt, user_prompt, all_kwargs, log_kwargs, log_config = self._process_args(
-            prompt, config, **config_kwargs
-        )
+        (
+            system_prompt,
+            user_prompt,
+            all_kwargs,
+            log_kwargs,
+            log_config,
+        ) = self._process_args(prompt, config, **config_kwargs)
 
         if config.stream:
             output = self.replicate_client.stream(
@@ -153,9 +162,13 @@ class ReplicateConnector(IConnector, IChatClient):
     async def achat(
         self, prompt: Prompt, config: ChatConfig = NOT_GIVEN, **config_kwargs
     ) -> Union[Response, Stream]:
-        system_prompt, user_prompt, all_kwargs, log_kwargs, log_config = self._process_args(
-            prompt, config, **config_kwargs
-        )
+        (
+            system_prompt,
+            user_prompt,
+            all_kwargs,
+            log_kwargs,
+            log_config,
+        ) = self._process_args(prompt, config, **config_kwargs)
 
         if config.stream:
             output = await self.replicate_client.async_stream(

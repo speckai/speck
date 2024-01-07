@@ -12,8 +12,16 @@ from typing import Union
 from openai import AsyncOpenAI, OpenAI
 from openai.types.chat import ChatCompletion
 
-from ..chat.entities import (NOT_GIVEN, ChatConfig, IChatClient, LogConfig,
-                             MessageChunk, Prompt, Response, Stream)
+from ..chat.entities import (
+    NOT_GIVEN,
+    ChatConfig,
+    IChatClient,
+    LogConfig,
+    MessageChunk,
+    Prompt,
+    Response,
+    Stream,
+)
 from ..util import filter_kwargs, get_dict
 from .connector import IConnector
 from .providers import Providers
@@ -35,12 +43,8 @@ class OpenAIResponse(Response):
 
 
 class OpenAIConnector(IConnector, IChatClient):
-    def __init__(
-        self, client: "Speck" = None, api_key: str = None
-    ):
-        super().__init__(
-            client=client, provider=Providers.OpenAI
-        )
+    def __init__(self, client: "Speck" = None, api_key: str = None):
+        super().__init__(client=client, provider=Providers.OpenAI)
         if api_key is not None:
             self.api_key = api_key
             self.client = OpenAI(api_key=self.api_key)
@@ -63,7 +67,7 @@ class OpenAIConnector(IConnector, IChatClient):
         if config_kwargs.get("_log"):
             if self._client.log_config:
                 log_config = self._client.log_config
-            
+
             elif not config_kwargs.get("log_config"):
                 raise ValueError(
                     "No log config found. Define the log config in the log or client."
@@ -75,8 +79,12 @@ class OpenAIConnector(IConnector, IChatClient):
     def chat(
         self, prompt: Prompt, config: ChatConfig = NOT_GIVEN, **config_kwargs
     ) -> Union[OpenAIResponse, Stream]:
-        input, all_kwargs, log_config = self._process_kwargs(prompt, config, **config_kwargs)
-        
+        if self._client.debug:
+            print("DEBUGGING!")
+        input, all_kwargs, log_config = self._process_kwargs(
+            prompt, config, **config_kwargs
+        )
+
         if config.stream:
             output_stream = self.client.chat.completions.create(
                 messages=input,
@@ -110,7 +118,9 @@ class OpenAIConnector(IConnector, IChatClient):
     async def achat(
         self, prompt: Prompt, config: ChatConfig = NOT_GIVEN, **config_kwargs
     ) -> Union[OpenAIResponse, Stream]:
-        input, all_kwargs, log_config = self._process_kwargs(prompt, config, **config_kwargs)
+        input, all_kwargs, log_config = self._process_kwargs(
+            prompt, config, **config_kwargs
+        )
 
         if config.stream:
             output_stream = await self.async_client.chat.completions.create(

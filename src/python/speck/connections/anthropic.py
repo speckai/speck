@@ -10,8 +10,16 @@ from typing import Union
 import httpx
 import requests
 
-from ..chat.entities import (NOT_GIVEN, ChatConfig, IChatClient, LogConfig,
-                             MessageChunk, Prompt, Response, Stream)
+from ..chat.entities import (
+    NOT_GIVEN,
+    ChatConfig,
+    IChatClient,
+    LogConfig,
+    MessageChunk,
+    Prompt,
+    Response,
+    Stream,
+)
 from .connector import IConnector
 from .providers import Providers
 
@@ -57,12 +65,8 @@ class AnthropicResponse(Response):
 
 
 class AnthropicConnector(IConnector, IChatClient):
-    def __init__(
-        self, api_key: str = None, client: "Speck" = None
-    ):
-        super().__init__(
-            client=client, provider=Providers.Anthropic
-        )
+    def __init__(self, api_key: str = None, client: "Speck" = None):
+        super().__init__(client=client, provider=Providers.Anthropic)
         if api_key is not None:
             self.api_key = api_key
             self.url = "https://api.anthropic.com/v1/complete"
@@ -107,7 +111,7 @@ class AnthropicConnector(IConnector, IChatClient):
             **config.chat_args,
         }
 
-        blocked_kwargs = ["provider", "_log", "_kwargs", "stream", "max_tokens"]
+        blocked_kwargs = ["provider", "_log", "chat_args", "stream", "max_tokens"]
 
         for k, v in all_kwargs.items():
             if k not in data and k not in blocked_kwargs:
@@ -117,7 +121,7 @@ class AnthropicConnector(IConnector, IChatClient):
         if config_kwargs.get("_log"):
             if self._client.log_config:
                 log_config = self._client.log_config
-            
+
             elif not config_kwargs.get("log_config"):
                 raise ValueError(
                     "No log config found. Define the log config in the log or client."
