@@ -7,7 +7,8 @@ from openai import OpenAI as _OpenAI
 from openai import Stream as _Stream
 
 from .. import ChatLogger, ProvidersList, Speck
-from ..chat.entities import ChatConfig, OpenAIChatConfig, Prompt, Response, Stream
+from ..chat.entities import (ChatConfig, OpenAIChatConfig, Prompt, Response,
+                             Stream)
 from ..util._wrapper import wrap_method
 
 logger = logging.getLogger(__name__)
@@ -63,7 +64,6 @@ class OpenAIStream:
             # kwargs["response"] = Response(content=self.message, raw={}, closed=True)
             # ChatLogger.log(**kwargs)
 
-            print("Logging chat!", self.message)
             self.config.log_chat(
                 speck_api_key=self.speck_api_key,
                 endpoint="https://api.speck.chat",
@@ -129,7 +129,6 @@ def chat_wrapper(self: OpenAIWrapper, original_method, *args, **kwargs):
 
     logger.info(f"Call {original_method.__name__} with model {model}")
     if stream:
-        print("Stream called!")
         stream = original_method(*args, **kwargs)
         # Todo: wrap the Stream class
         # Best current way to do this is to convert our Stream class to an OpenAI Stream class

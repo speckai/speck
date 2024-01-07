@@ -23,7 +23,7 @@ def universal_format_log(
         raise ValueError("No valid API key found. Define the API key for the log config.")
     if not log_config.endpoint:
         raise ValueError("No valid endpoint found. Define the endpoint for the log config.")
-    print(kwargs)
+    
     body: dict[str, Any] = {
         "input": {
             # Todo: Fix typing for Providers enum (circular import)
@@ -35,9 +35,6 @@ def universal_format_log(
         "output": get_dict(response),
         "metadata": generate_metadata_dict(),
     }
-    print("API")
-    print(log_config.api_key)
-    print(body)
 
     try:
         headers = {"X-API-Key": log_config.api_key}

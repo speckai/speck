@@ -193,7 +193,6 @@ class Prompt(str):
         )
 
     def to_list(self):
-        print("To List")
         return [
             {
                 "role": message.role,
