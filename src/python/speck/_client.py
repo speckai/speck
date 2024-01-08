@@ -1,15 +1,8 @@
 from typing import Tuple, Union
 
 from .chat.client import IChatClient
-from .chat.entities import (
-    ChatConfig,
-    ChatConfigTypes,
-    LogConfig,
-    Prompt,
-    PromptTypes,
-    Response,
-    ResponseTypes,
-)
+from .chat.entities import (ChatConfig, ChatConfigTypes, LogConfig, Prompt,
+                            PromptTypes, Response, ResponseTypes)
 from .connections.anthropic import AnthropicConnector
 from .connections.openai import OpenAIConnector
 from .connections.openai_azure import AzureOpenAIConnector
@@ -116,7 +109,7 @@ def _create_connector(
     client.log_config: LogConfig = None
     if client.api_key:
         log_config = LogConfig(
-            api_key=client.api_key, endpoint=client.endpoint or "https://api.speck.chat"
+            api_key=client.api_key, endpoint=client.endpoint or "https://api.getspeck.ai"
         )
         client.log_config = log_config
 
@@ -202,7 +195,7 @@ class Speck(BaseClient):
         self,
         api_key: Union[str, None] = None,
         api_keys: dict[str, str] = {},
-        endpoint: str = "https://api.speck.chat",
+        endpoint: str = "https://api.getspeck.ai",
         debug: bool = False,
     ):
         self.api_key = api_key.strip() if api_key is not None else None
@@ -220,7 +213,7 @@ class AsyncSpeck(BaseClient):
         self,
         api_key: Union[str, None] = None,
         api_keys: dict[str, str] = {},
-        endpoint: Union[str, None] = "https://api.speck.chat",
+        endpoint: Union[str, None] = "https://api.getspeck.ai",
         debug: bool = False,
     ):
         self.api_key = api_key.strip() if api_key is not None else None

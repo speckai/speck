@@ -45,9 +45,9 @@ setup(
     ],
     url="https://github.com/speckai/speck",
     download_url="https://github.com/speckai/speck/archive/refs/tags/v0.0.10.tar.gz",
-    homepage="https://speck.chat",
+    homepage="https://getspeck.ai",
     author="",
-    author_email="Lucas Jaggernauth <luke@speck.chat>, Raghav Pillai <raghav@speck.chat>",
+    author_email="Lucas Jaggernauth <luke@getspeck.ai>, Raghav Pillai <raghav@getspeck.ai>",
     classifiers=[
         "Programming Language :: Python :: 3.12",
         "Programming Language :: Python :: 3.11",

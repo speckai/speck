@@ -24,7 +24,7 @@ SPECK_API_KEY = os.getenv("SPECK_API_KEY")
 
 
 def generate_client(cls, prod=False, debug=False):
-    endpoint = "https://api.speck.chat" if prod else "http://localhost:8080"
+    endpoint = "https://api.getspeck.ai" if prod else "http://localhost:8080"
     client = cls(
         api_key=SPECK_API_KEY,
         api_keys={

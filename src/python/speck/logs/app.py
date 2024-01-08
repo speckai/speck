@@ -12,7 +12,7 @@ class app:
 
     @classmethod
     def log(
-        cls, message: str, endpoint: str = "https://api.speck.chat"
+        cls, message: str, endpoint: str = "https://api.getspeck.ai"
     ) -> dict[str, str]:
         if not cls.api_key:
             return {}

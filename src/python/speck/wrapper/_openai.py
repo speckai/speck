@@ -66,7 +66,7 @@ class OpenAIStream:
 
             self.config.log_chat(
                 speck_api_key=self.speck_api_key,
-                endpoint="https://api.speck.chat",
+                endpoint="https://api.getspeck.ai",
                 prompt=self.prompt,
                 response=Response(content=self.message, raw={}, closed=True),
             )
@@ -147,7 +147,7 @@ def chat_wrapper(self: OpenAIWrapper, original_method, *args, **kwargs):
 
         config.log_chat(
             speck_api_key=self._speck_api_key,
-            endpoint="https://api.speck.chat",
+            endpoint="https://api.getspeck.ai",
             prompt=prompt,
             response=result,
             provider="openai",

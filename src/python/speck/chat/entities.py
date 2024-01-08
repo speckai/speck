@@ -4,7 +4,6 @@ from abc import ABC, abstractmethod
 from typing import Any, Callable, Iterator, Literal, Optional, Tuple, Union
 
 from openai._types import NotGiven
-
 # from dataclasses import dataclass
 from pydantic import BaseModel, Extra
 
@@ -413,7 +412,7 @@ class Stream:
 
 class LogConfig(BaseModel):
     api_key: str
-    endpoint: str = "https://api.speck.chat"
+    endpoint: str = "https://api.getspeck.ai"
 
     class Config:
         extra = "allow"
