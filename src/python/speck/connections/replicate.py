@@ -151,7 +151,7 @@ class ReplicateConnector(IConnector, IChatClient):
 
             if config._log:
                 self.log(
-                    config=log_config,
+                    log_config=log_config,
                     prompt=prompt,
                     response=Response(content=content),
                     **log_kwargs,
@@ -192,7 +192,7 @@ class ReplicateConnector(IConnector, IChatClient):
 
             if config._log:
                 self.log(
-                    config=log_config,
+                    log_config=log_config,
                     prompt=prompt,
                     response=Response(content=content),
                     **log_kwargs,

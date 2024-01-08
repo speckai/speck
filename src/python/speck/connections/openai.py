@@ -104,7 +104,7 @@ class OpenAIConnector(IConnector, IChatClient):
 
             if config._log:
                 self.log(
-                    config=log_config,
+                    log_config=log_config,
                     prompt=prompt,
                     response=OpenAIResponse(output),
                     **all_kwargs,
@@ -142,7 +142,7 @@ class OpenAIConnector(IConnector, IChatClient):
 
             if config._log:
                 self.log(
-                    config=log_config,
+                    log_config=log_config,
                     prompt=prompt,
                     response=OpenAIResponse(output),
                     **all_kwargs,

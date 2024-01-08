@@ -154,7 +154,7 @@ class AnthropicConnector(IConnector, IChatClient):
             output = response.json()
             if config._log:
                 self.log(
-                    config=log_config,
+                    log_config=log_config,
                     prompt=prompt,
                     response=AnthropicResponse(output),
                     **all_kwargs,
@@ -187,7 +187,7 @@ class AnthropicConnector(IConnector, IChatClient):
                 output = response.json()
                 if config._log:
                     self.log(
-                        config=log_config,
+                        log_config=log_config,
                         prompt=prompt,
                         response=AnthropicResponse(output),
                         **all_kwargs,

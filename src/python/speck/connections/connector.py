@@ -25,11 +25,13 @@ class IConnector(ABC):
             "config": kwargs,
             "response": response,
         }
-        
 
-    def log(self, *, config: LogConfig, prompt: Prompt, response: Response, **kwargs):
+    def log(
+        self, *, log_config: LogConfig, prompt: Prompt, response: Response, **kwargs
+    ):
+        # Todo: refactor to use config.log_chat !!!
         ChatLogger.log(
-            config=config,
+            log_config=log_config,
             **self._get_log_kwargs(prompt, response, **kwargs),
         )
 
