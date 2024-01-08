@@ -16,35 +16,26 @@ with open(".env") as f:
         key, value = line.split("=")
         os.environ[key] = value.strip()
 
-
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 AZURE_OPENAI_API_KEY = os.getenv("AZURE_OPENAI_API_KEY")
 REPLICATE_API_TOKEN = os.getenv("REPLICATE_API_TOKEN")
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
 SPECK_API_KEY = os.getenv("SPECK_API_KEY")
 
-client = Speck(
-    api_key=SPECK_API_KEY,
-    api_keys={
-        "openai": OPENAI_API_KEY,
-        "replicate": REPLICATE_API_TOKEN,
-        "azure_openai": AZURE_OPENAI_API_KEY,
-        "anthropic": ANTHROPIC_API_KEY,
-    },
-    endpoint="http://localhost:8080",
-    debug=True,
-)
-client.add_azure_openai_config("", "")
 
-async_client = AsyncSpeck(
-    api_key=SPECK_API_KEY,
-    api_keys={
-        "openai": OPENAI_API_KEY,
-        "replicate": REPLICATE_API_TOKEN,
-        "azure_openai": AZURE_OPENAI_API_KEY,
-        "anthropic": ANTHROPIC_API_KEY,
-    },
-    endpoint="http://localhost:8080",
-    debug=True,
-)
-async_client.add_azure_openai_config("", "")
+def generate_client(cls, prod=False, debug=False):
+    endpoint = "https://api.speck.chat" if prod else "http://localhost:8080"
+    client = cls(
+        api_key=SPECK_API_KEY,
+        api_keys={
+            "openai": OPENAI_API_KEY,
+            "replicate": REPLICATE_API_TOKEN,
+            "azure_openai": AZURE_OPENAI_API_KEY,
+            "anthropic": ANTHROPIC_API_KEY,
+        },
+        endpoint=endpoint,
+        debug=debug,
+    )
+    client.add_azure_openai_config("", "")
+
+    return client

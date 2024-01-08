@@ -1,7 +1,9 @@
 import asyncio
 
-from _load import async_client as client
-from speck import Message, Prompt, Response, Stream
+from _load import generate_client
+from speck import Message, Prompt, Response, Speck, Stream
+
+client = generate_client(Speck, prod=False, debug=False)
 
 
 async def main():
